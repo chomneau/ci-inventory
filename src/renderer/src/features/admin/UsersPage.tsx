@@ -130,7 +130,7 @@ export function UsersPage() {
       .catch(() => undefined)
 
   return (
-    <div className="mx-auto max-w-6xl space-y-5">
+    <div className="mx-auto w-full max-w-[1400px] space-y-5">
       <PageHeader
         title={t('nav.users')}
         description={t('users.subtitle')}

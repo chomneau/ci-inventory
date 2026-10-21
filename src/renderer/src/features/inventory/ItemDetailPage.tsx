@@ -57,7 +57,7 @@ export function ItemDetailPage() {
   ]
 
   return (
-    <div className="mx-auto max-w-6xl space-y-5">
+    <div className="mx-auto w-full max-w-[1400px] space-y-5">
       <Link to="/items" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
         <ArrowLeft className="size-4" />
         {t('items.backToList')}

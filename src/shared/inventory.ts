@@ -98,6 +98,13 @@ export const movementListQuery = z.object({
   offset: z.number().int().min(0).default(0)
 })
 
+export const analyticsQuery = z.object({
+  /** Length of the period, ending today (local time). */
+  days: z.union([z.literal(7), z.literal(30), z.literal(90)]).default(30),
+  /** Limit everything to one location (stock on hand and movements). */
+  locationId: id.nullable().optional()
+})
+
 // ---------------------------------------------------------------- DTOs (main → renderer)
 
 export interface Category {
@@ -179,4 +186,46 @@ export interface ItemLabel {
 /** Text encoded in item QR labels; scanners read this back. */
 export function labelPayload(sku: string): string {
   return `CIINV:${sku}`
+}
+
+export interface DailyPoint {
+  /** Local calendar day, YYYY-MM-DD. */
+  day: string
+  receivedCents: number
+  issuedCents: number
+  movements: number
+  /** Total stock value at the end of the day. */
+  stockValueCents: number
+}
+
+export interface PeriodTotals {
+  receivedCents: number
+  issuedCents: number
+  movements: number
+}
+
+export interface InventoryAnalytics {
+  days: number
+  locationId: number | null
+  series: DailyPoint[]
+  current: PeriodTotals
+  /** The same-length period immediately before, for deltas. */
+  previous: PeriodTotals
+  stockValueCents: number
+  health: { ok: number; low: number; out: number }
+  valueByCategory: { categoryId: number | null; nameEn: string; nameKm: string | null; valueCents: number; items: number }[]
+  topIssued: { itemId: number; sku: string; nameEn: string; nameKm: string | null; unit: string; quantity: number; valueCents: number }[]
+  issuedTo: { recipient: string | null; valueCents: number; quantity: number; movements: number }[]
+  reorder: {
+    itemId: number
+    sku: string
+    nameEn: string
+    nameKm: string | null
+    unit: string
+    onHand: number
+    minStock: number
+    /** Brings stock back up to twice the minimum. */
+    suggestedQuantity: number
+    estimatedCostCents: number
+  }[]
 }

@@ -39,7 +39,7 @@ export function AuditPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl space-y-5">
+    <div className="mx-auto w-full max-w-[1600px] space-y-5">
       <PageHeader
         title={t('nav.audit')}
         description={t('audit.subtitle')}

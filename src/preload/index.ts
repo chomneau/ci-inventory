@@ -59,7 +59,8 @@ const api: CiApi = {
     list: (input) => call(Channels.stockList, input)
   },
   dashboard: {
-    summary: () => call(Channels.dashboardSummary)
+    summary: () => call(Channels.dashboardSummary),
+    analytics: (input) => call(Channels.dashboardAnalytics, input)
   },
   exports: {
     csv: (input) => call(Channels.exportCsv, input)

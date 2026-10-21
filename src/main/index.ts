@@ -132,8 +132,12 @@ if (!app.requestSingleInstanceLock()) {
     setSessionResolver(() => signedInAuth.currentUser())
     registerAppHandlers()
     registerAuthHandlers(signedInAuth)
-    registerInventoryHandlers(new InventoryService(db))
+    registerInventoryHandlers(new InventoryService(db), db)
     registerAdminHandlers(db, signedInAuth, new UserAdminService(db))
+    // Dev-only demo data for dashboard work; ignored in packaged builds.
+    if (!app.isPackaged && process.env['CI_INV_DEMO_SEED'] === '1') {
+      void import('./services/demo-seed').then(({ seedDemoData }) => seedDemoData(db) && log.info('demo data seeded'))
+    }
     startUpdater(() => getAppSettings(db).updatesEnabled)
     createMainWindow()
 

@@ -38,6 +38,7 @@ export const Channels = {
   stockRecord: 'stock:record',
   stockList: 'stock:list',
   dashboardSummary: 'dashboard:summary',
+  dashboardAnalytics: 'dashboard:analytics',
   exportCsv: 'export:csv',
   printPage: 'app:print',
 

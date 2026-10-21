@@ -27,6 +27,17 @@
   --accent-foreground: #025f8d;
   --sidebar: #ffffff;
   --ring: var(--ci-blue);
+
+  /* Chart tokens (validated: CI blue + CI green pass the six checks on both card surfaces). */
+  --series-1: #0397d6; /* CI blue  */
+  --series-2: #4aaa42; /* CI green — 2.95:1 on white: charts using it always show labels + a table view */
+  --chart-grid: #e8edf1;
+  --chart-axis: #c7d0d6;
+  --chart-muted: #7b868e;
+  --chart-deemph: #b4bec5;
+  --status-good: #0ca30c;
+  --status-warning: #fab219;
+  --status-critical: #d03b3b;
 }
 
 .dark {
@@ -42,6 +53,10 @@
   --accent-foreground: #7fcaf0;
   --sidebar: #0c1925;
   --ring: var(--ci-blue);
+  --chart-grid: #1c3042;
+  --chart-axis: #2c4356;
+  --chart-muted: #8697a5;
+  --chart-deemph: #4a6072;
   color-scheme: dark;
 }
 
@@ -63,6 +78,12 @@
   --color-ci-green: var(--ci-green);
   --color-ci-gray: var(--ci-gray);
   --color-ci-navy: var(--ci-navy);
+  --color-series-1: var(--series-1);
+  --color-series-2: var(--series-2);
+  --color-chart-muted: var(--chart-muted);
+  --color-status-good: var(--status-good);
+  --color-status-warning: var(--status-warning);
+  --color-status-critical: var(--status-critical);
   /* CI primary typeface is Helvetica Neue, with Arial as the approved fallback. */
   --font-sans: 'Helvetica Neue', Helvetica, Arial, 'Noto Sans Khmer', sans-serif;
   --font-khmer: 'Noto Sans Khmer', 'Helvetica Neue', Helvetica, Arial, sans-serif;

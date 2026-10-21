@@ -5,6 +5,7 @@ import type { IpcResult } from './ipc-result'
 import type {
   Category,
   DashboardSummary,
+  InventoryAnalytics,
   ItemDetail,
   ItemLabel,
   ItemSummary,
@@ -77,6 +78,7 @@ export interface CiApi {
   }
   dashboard: {
     summary(): Call<DashboardSummary>
+    analytics(input: { days: 7 | 30 | 90; locationId?: number | null }): Call<InventoryAnalytics>
   }
   exports: {
     /** Shows a native save dialog and writes the CSV in main. */

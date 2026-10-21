@@ -14,7 +14,9 @@
     "locations": "ទីតាំង",
     "users": "អ្នកប្រើប្រាស់ និងតួនាទី",
     "settings": "ការកំណត់",
-    "audit": "កំណត់ត្រាសវនកម្ម"
+    "audit": "កំណត់ត្រាសវនកម្ម",
+    "expand": "ពង្រីករបារចំហៀង",
+    "collapse": "បង្រួមរបារចំហៀង"
   },
   "dashboard": {
     "welcome": "សូមស្វាគមន៍មកកាន់ CI Inventory",
@@ -516,5 +518,54 @@
       "error": "មិនអាចភ្ជាប់ទៅម៉ាស៊ីនមេធ្វើបច្ចុប្បន្នភាពបានទេ"
     },
     "manualOnly": "កំណែថ្មីត្រូវដំឡើងដោយដៃ — សូមស្នើអ្នកគ្រប់គ្រងសម្រាប់កម្មវិធីដំឡើងចុងក្រោយ។"
+  },
+  "charts": {
+    "showTable": "បង្ហាញជាតារាង",
+    "showChart": "បង្ហាញជាក្រាហ្វ"
+  },
+  "dash": {
+    "period": "រយៈពេល",
+    "lastDays_other": "{{count}} ថ្ងៃចុងក្រោយ",
+    "allLocations": "ទីតាំងទាំងអស់",
+    "updating": "កំពុងធ្វើបច្ចុប្បន្នភាព…",
+    "received": "បានទទួល",
+    "issued": "បានចេញ",
+    "movements": "ចលនា",
+    "needReorder": "សម្ភារៈត្រូវបញ្ជាទិញ",
+    "outCount_other": "អស់ស្តុក {{count}}",
+    "itemsInScope_other": "សម្ភារៈ {{count}}",
+    "movementsInPeriod_other": "ចលនា {{count}} ក្នុងរយៈពេលនេះ",
+    "vsPrevious": "ធៀបនឹង {{days}} ថ្ងៃមុន",
+    "noChange": "គ្មានសកម្មភាពក្នុងរយៈពេលទាំងពីរ",
+    "newVsPrevious": "គ្មានអ្វីក្នុង {{days}} ថ្ងៃមុន",
+    "flowTitle": "ទទួល ធៀបនឹង ចេញ",
+    "flowSubtitle": "តម្លៃប្រចាំថ្ងៃ {{days}} ថ្ងៃចុងក្រោយ",
+    "healthTitle": "ស្ថានភាពស្តុក",
+    "healthSubtitle": "សម្ភារៈសកម្មតាមកម្រិតស្តុក",
+    "healthOk": "មានស្តុក",
+    "healthLow": "ជិតអស់ (ស្មើ ឬក្រោមអប្បបរមា)",
+    "healthOut": "អស់ស្តុក",
+    "topIssuedTitle": "សម្ភារៈដែលចេញច្រើនបំផុត",
+    "byValue": "តាមតម្លៃ {{days}} ថ្ងៃចុងក្រោយ",
+    "issuedToTitle": "ចេញឱ្យ",
+    "byCategoryTitle": "តម្លៃស្តុកតាមប្រភេទ",
+    "byCategorySubtitle": "តម្លៃបច្ចុប្បន្ននៃស្តុកដែលមាន",
+    "noIssues": "គ្មានស្តុកចេញក្នុងរយៈពេលនេះទេ។",
+    "noStock": "គ្មានស្តុក។",
+    "unspecified": "មិនបានបញ្ជាក់",
+    "issues": "ការចេញ",
+    "issueCount_other": "ការចេញ {{count}}",
+    "itemsCount_other": "សម្ភារៈ {{count}}",
+    "reorderTitle": "សំណើបញ្ជាទិញ",
+    "reorderSubtitle": "សម្ភារៈស្មើ ឬក្រោមអប្បបរមា — បរិមាណស្នើឱ្យស្តុកត្រឡប់ទៅទ្វេដងនៃអប្បបរមា",
+    "suggested": "បរិមាណស្នើ",
+    "estCost": "តម្លៃប៉ាន់ស្មាន",
+    "receive": "ទទួល",
+    "copyList": "ចម្លងបញ្ជី",
+    "reorderCopied": "បានចម្លងបញ្ជីបញ្ជាទិញ — បិទភ្ជាប់ក្នុង Excel ឬអ៊ីមែល។",
+    "reorderTotal_other": "សម្ភារៈត្រូវបញ្ជាទិញ {{count}} · សរុបប៉ាន់ស្មាន",
+    "reorderBudget": "ថវិកាបញ្ជាទិញប៉ាន់ស្មាន",
+    "reorderBudgetHint_other": "ដើម្បីបំពេញស្តុកសម្ភារៈ {{count}} ឱ្យដល់ទ្វេដងនៃអប្បបរមា",
+    "viewLowItems": "មើលសម្ភារៈស្តុកជិតអស់"
   }
 }

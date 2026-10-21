@@ -6,6 +6,7 @@ import { z } from 'zod'
 import type { Role } from '@shared/auth'
 import { Channels, Events } from '@shared/channels'
 import {
+  analyticsQuery,
   categoryInput,
   categoryUpdate,
   itemCreate,
@@ -21,6 +22,8 @@ import {
 import type { InventoryService, LowStockAlert } from '../services/inventory'
 import { chooseOpenPath, chooseSavePath } from '../dialogs'
 import { processPhoto } from '../services/photo'
+import { inventoryAnalytics } from '../services/analytics'
+import type { Db } from '../db/client'
 import { handle } from './router'
 
 const WRITE: readonly Role[] = ['admin', 'storekeeper']
@@ -41,7 +44,7 @@ function notifyLowStock(alert: LowStockAlert | null): void {
   }).show()
 }
 
-export function registerInventoryHandlers(inv: InventoryService): void {
+export function registerInventoryHandlers(inv: InventoryService, db: Db): void {
   /** Runs a mutation, then notifies renderers. */
   const mutate =
     <A extends unknown[], R>(fn: (...args: A) => R) =>
@@ -111,6 +114,7 @@ export function registerInventoryHandlers(inv: InventoryService): void {
   )
   handle(Channels.stockList, movementListQuery.partial().optional(), (input) => inv.listMovements(input ?? {}))
   handle(Channels.dashboardSummary, none, () => inv.dashboard())
+  handle(Channels.dashboardAnalytics, analyticsQuery, (input) => inventoryAnalytics(db, input))
 
   // ---- export (any signed-in user may export what they can already see; every export is audited)
   handle(Channels.exportCsv, z.object({ kind: z.enum(['items', 'movements']) }), async (input, { user, event }) => {
