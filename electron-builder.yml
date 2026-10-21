@@ -1,0 +1,89 @@
+# CI Inventory — packaging for Windows, macOS (Apple Silicon + Intel) and Linux.
+# Signing is prepared but optional: with no certificate in the environment the builds are unsigned.
+appId: kh.org.ci.inventory
+productName: CI Inventory
+copyright: Copyright © Conservation International Cambodia
+artifactName: CI-Inventory-${version}-${os}-${arch}.${ext}
+
+directories:
+  buildResources: build
+  output: dist
+
+files:
+  - out/**/*
+  - package.json
+  - drizzle/**/*
+  # SQLCipher ships one prebuilt binary per platform; keep only the one this build targets.
+  - '!node_modules/better-sqlite3/prebuilds/**'
+  - node_modules/better-sqlite3/prebuilds/${platform}-${arch}.node
+  - '!node_modules/better-sqlite3/{src,deps,docs,benchmark,test}/**'
+  - '!**/*.{md,map,ts,tsx,d.ts}'
+asar: true
+asarUnpack:
+  - '**/*.node'
+
+# Hardening, flipped into the Electron binary at package time.
+electronFuses:
+  runAsNode: false
+  enableCookieEncryption: true
+  enableNodeOptionsEnvironmentVariable: false
+  enableNodeCliInspectArguments: false
+  enableEmbeddedAsarIntegrityValidation: true
+  onlyLoadAppFromAsar: true
+  grantFileProtocolExtraPrivileges: false
+  # Re-sign ad hoc after flipping fuses so unsigned macOS builds still launch on Apple Silicon.
+  resetAdHocDarwinSignature: true
+
+# Auto-update feed. Owner/repo are filled from package.json "ciInventory.github" by scripts/release-config.mjs.
+publish:
+  provider: github
+  owner: chomneau
+  repo: ci-inventory
+  releaseType: draft
+
+mac:
+  category: public.app-category.business
+  target:
+    - target: dmg
+      arch: [arm64, x64]
+    - target: zip # required by the macOS updater
+      arch: [arm64, x64]
+  hardenedRuntime: true
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+  # Becomes true (and builds get notarized) once APPLE_* credentials are configured in CI.
+  notarize: false
+  minimumSystemVersion: '12.0'
+dmg:
+  title: CI Inventory ${version}
+
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+  # Code signing activates automatically when WIN_CSC_LINK / WIN_CSC_KEY_PASSWORD (or Azure Trusted Signing) are set.
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: CI Inventory
+  uninstallDisplayName: CI Inventory
+  deleteAppDataOnUninstall: false # never delete inventory data on uninstall
+
+linux:
+  target:
+    - target: AppImage
+      arch: [x64]
+    - target: deb
+      arch: [x64]
+  category: Office
+  maintainer: Conservation International Cambodia
+  synopsis: Inventory & office supplies
+  description: Secure, offline inventory and office-supplies management for CI Cambodia.
+deb:
+  # The encrypted database key is protected by the system keyring (required).
+  depends:
+    - libsecret-1-0
+    - gnome-keyring | kwalletmanager

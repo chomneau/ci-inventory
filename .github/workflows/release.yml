@@ -1,0 +1,69 @@
+# Builds signed-ready installers natively on each OS when a version tag (v1.2.3) is pushed,
+# and attaches them — plus SHA-256 checksums and auto-update feeds — to a DRAFT GitHub release.
+# Review the draft, then press "Publish": only published releases are offered to the apps.
+name: Release
+
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: write # create the draft release and upload assets
+
+jobs:
+  build:
+    name: Build (${{ matrix.name }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macOS (Apple Silicon + Intel)
+            os: macos-latest
+            builder: --mac --arm64 --x64
+          - name: Windows
+            os: windows-latest
+            builder: --win --x64
+          - name: Linux
+            os: ubuntu-latest
+            builder: --linux --x64
+    runs-on: ${{ matrix.os }}
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # ---- Code signing (optional). Leave unset to build unsigned. ----
+      # macOS:  CSC_LINK, CSC_KEY_PASSWORD, APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD, APPLE_TEAM_ID
+      # Windows: WIN_CSC_LINK, WIN_CSC_KEY_PASSWORD  (or Azure Trusted Signing variables)
+      CSC_LINK: ${{ secrets.CSC_LINK }}
+      CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+      WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+      WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+      CSC_IDENTITY_AUTO_DISCOVERY: ${{ secrets.CSC_LINK != '' }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Tag must match package.json version
+        shell: bash
+        run: test "v$(node -p 'require("./package.json").version')" = "${GITHUB_REF_NAME}"
+      - run: npm run typecheck
+      - run: npm test
+      - name: Intel Mac build also needs the x64 Argon2 binary
+        if: runner.os == 'macOS'
+        run: npm install --no-save --force @node-rs/argon2-darwin-x64@$(node -p 'require("@node-rs/argon2/package.json").version')
+      - run: npm run release:config
+      - run: npm run build
+      - name: Package and upload to the draft release
+        run: npx electron-builder ${{ matrix.builder }} --publish always
+      - name: Verify packages (fuses, native binaries, migrations)
+        run: node scripts/verify-package.mjs
+      - name: Upload SHA-256 checksums
+        shell: bash
+        run: |
+          cd dist
+          files=$(ls *.dmg *.zip *.exe *.AppImage *.deb 2>/dev/null || true)
+          [ -n "$files" ] || exit 0
+          if command -v sha256sum >/dev/null; then sha256sum $files; else shasum -a 256 $files; fi > "SHA256SUMS-${RUNNER_OS}.txt"
+          cat "SHA256SUMS-${RUNNER_OS}.txt"
+          gh release upload "${GITHUB_REF_NAME}" "SHA256SUMS-${RUNNER_OS}.txt" --clobber

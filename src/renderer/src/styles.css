@@ -1,0 +1,155 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Conservation International identity (guidelines 1.11, 3.1):
+ *   CI Blue  PMS 2925  #0397D6   CI Green PMS 362  #4AAA42   CI Gray PMS 431  #6A747C
+ * White text on #0397D6 is only 3.3:1, so filled controls use a deeper shade of
+ * the same blue (#0279B4, 4.8:1). The logo blue is kept for accents and dark grounds.
+ */
+:root {
+  --ci-blue: #0397d6;
+  --ci-blue-deep: #0279b4;
+  --ci-green: #4aaa42;
+  --ci-gray: #6a747c;
+  --ci-navy: #0b1f35;
+
+  --background: #f6f8fa;
+  --foreground: #1e2a33;
+  --card: #ffffff;
+  --muted: #eef2f5;
+  --muted-foreground: #5f6a72;
+  --border: #dfe5ea;
+  --primary: var(--ci-blue-deep);
+  --primary-foreground: #ffffff;
+  --accent: #e3f2fb;
+  --accent-foreground: #025f8d;
+  --sidebar: #ffffff;
+  --ring: var(--ci-blue);
+}
+
+.dark {
+  --background: #0a1520;
+  --foreground: #e8eef3;
+  --card: #0f1e2c;
+  --muted: #152737;
+  --muted-foreground: #9aa8b3;
+  --border: #213547;
+  --primary: var(--ci-blue);
+  --primary-foreground: #04131f;
+  --accent: #0e3049;
+  --accent-foreground: #7fcaf0;
+  --sidebar: #0c1925;
+  --ring: var(--ci-blue);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-ring: var(--ring);
+  --color-ci-blue: var(--ci-blue);
+  --color-ci-blue-deep: var(--ci-blue-deep);
+  --color-ci-green: var(--ci-green);
+  --color-ci-gray: var(--ci-gray);
+  --color-ci-navy: var(--ci-navy);
+  /* CI primary typeface is Helvetica Neue, with Arial as the approved fallback. */
+  --font-sans: 'Helvetica Neue', Helvetica, Arial, 'Noto Sans Khmer', sans-serif;
+  --font-khmer: 'Noto Sans Khmer', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+  /* Khmer script needs its own font first and more vertical room for stacked consonants. */
+  html:lang(km) body {
+    font-family: var(--font-khmer);
+    line-height: 1.7;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-ring;
+  }
+}
+
+/* Deep navy → CI blue, after the gradient grounds in guidelines 1.16 and 1.19. */
+.bg-ci-gradient {
+  background:
+    radial-gradient(ellipse 80% 70% at 78% 38%, rgb(79 167 224 / 0.95) 0%, rgb(27 94 149 / 0.9) 32%, transparent 72%),
+    linear-gradient(160deg, #0d2a47 0%, #0a1d33 55%, #07131f 100%);
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes slow-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.animate-rise-in {
+  animation: rise-in 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.animate-slow-spin {
+  animation: slow-spin 240s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-rise-in,
+  .animate-slow-spin {
+    animation: none;
+  }
+}
+
+/* Label printing: only the .print-area sheet is printed (see LabelDialog). */
+.print-area {
+  display: none;
+}
+@media print {
+  @page {
+    margin: 10mm;
+  }
+  body * {
+    visibility: hidden;
+  }
+  .print-area,
+  .print-area * {
+    visibility: visible;
+  }
+  .print-area {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4mm;
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+  }
+  .print-area .label-card {
+    break-inside: avoid;
+    border-color: #999;
+  }
+}

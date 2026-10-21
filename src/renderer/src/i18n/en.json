@@ -1,0 +1,522 @@
+{
+  "app": {
+    "name": "CI Inventory",
+    "org": "CI Cambodia"
+  },
+  "nav": {
+    "main": "Main",
+    "inventory": "Inventory",
+    "admin": "Administration",
+    "dashboard": "Dashboard",
+    "items": "Items",
+    "stock": "Stock movements",
+    "categories": "Categories",
+    "locations": "Locations",
+    "users": "Users & roles",
+    "settings": "Settings",
+    "audit": "Audit log"
+  },
+  "dashboard": {
+    "welcome": "Welcome to CI Inventory",
+    "subtitle": "Track office supplies and inventory across CI Cambodia.",
+    "kpi": {
+      "totalItems": "Total items",
+      "lowStock": "Low stock",
+      "stockValue": "Stock value",
+      "movementsToday": "Movements today"
+    },
+    "noData": "No data yet",
+    "system": "System",
+    "version": "Version",
+    "database": "Database",
+    "encrypted": "Encrypted ({{cipher}})",
+    "platform": "Platform",
+    "welcomeUser": "Welcome back, {{name}}",
+    "needsRestock": "Needs restocking",
+    "allStocked": "Everything is above its minimum level.",
+    "recent": "Recent stock movements",
+    "viewAll": "View all"
+  },
+  "settings": {
+    "title": "Settings",
+    "appearance": "Appearance",
+    "appearanceHint": "Choose how CI Inventory looks on this computer.",
+    "theme": {
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    },
+    "language": "Language",
+    "languageHint": "Interface language for this computer.",
+    "security": {
+      "title": "Password",
+      "hint": "Changing your password needs your current password and a code from your authenticator app.",
+      "submit": "Change password",
+      "changed": "Your password has been changed."
+    },
+    "sections": {
+      "security": "Your security",
+      "admin": "Administration"
+    }
+  },
+  "topbar": {
+    "toggleTheme": "Toggle theme",
+    "language": "Language"
+  },
+  "common": {
+    "copy": "Copy",
+    "copied": "Copied",
+    "continue": "Continue",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saved": "Saved",
+    "edit": "Edit",
+    "delete": "Delete",
+    "close": "Close",
+    "none": "None"
+  },
+  "roles": {
+    "admin": "Administrator",
+    "storekeeper": "Storekeeper",
+    "viewer": "Viewer"
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Password",
+    "fullName": "Full name",
+    "confirmPassword": "Confirm password",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "passwordsDontMatch": "The passwords do not match.",
+    "backToSignIn": "Back to sign in",
+    "brand": {
+      "headline": "Office supplies and inventory, under control.",
+      "encrypted": "Data encrypted on this computer",
+      "twoStep": "Two-step sign-in with your phone",
+      "offline": "Works fully offline",
+      "tagline": "people need nature to thrive",
+      "appTitle": "Inventory & Office Supplies"
+    },
+    "rules": {
+      "length": "At least {{min}} characters",
+      "variety": "At least 6 different characters",
+      "common": "Not a common password",
+      "email": "Does not contain your email name"
+    },
+    "setup": {
+      "title": "Set up CI Inventory",
+      "subtitle": "Create the administrator account. You will link your phone in the next step.",
+      "submit": "Create administrator"
+    },
+    "login": {
+      "title": "Sign in",
+      "subtitle": "Use your CI Inventory account.",
+      "submit": "Sign in",
+      "forgot": "Forgot your password? Ask your administrator to reset it."
+    },
+    "totp": {
+      "title": "Two-step verification",
+      "subtitle": "Open your authenticator app and enter the 6-digit code for {{email}}.",
+      "recoverySubtitle": "Enter one of the recovery codes you saved when you set up your account.",
+      "codeLabel": "Authenticator code",
+      "recoveryLabel": "Recovery code",
+      "submit": "Verify",
+      "useRecovery": "Use a recovery code",
+      "useApp": "Use authenticator app"
+    },
+    "enroll": {
+      "title": "Link your phone",
+      "subtitle": "Every sign-in to {{email}} will need a code from your phone.",
+      "step1": "Install an authenticator app",
+      "step1Hint": "Google Authenticator or Microsoft Authenticator, from the App Store or Google Play.",
+      "step2": "Scan this QR code with the app",
+      "qrAlt": "QR code for your authenticator app",
+      "manual": "Can't scan? Enter this key in the app instead:",
+      "step3": "Enter the 6-digit code the app shows",
+      "submit": "Confirm and continue"
+    },
+    "recovery": {
+      "title": "Save your recovery codes",
+      "subtitle": "Use one of these if you lose your phone. Each code works once.",
+      "warning": "These codes will not be shown again. Print them or store them somewhere safe, away from this computer.",
+      "unavailable": "The codes are no longer available on this screen.",
+      "copy": "Copy all codes",
+      "confirm": "I have saved my recovery codes"
+    },
+    "forceChange": {
+      "title": "Choose a new password",
+      "subtitle": "Your administrator gave you a temporary password. Set your own to continue.",
+      "submit": "Save password"
+    },
+    "lock": {
+      "subtitle": "CI Inventory is locked. Enter your password to continue.",
+      "unlock": "Unlock",
+      "switchUser": "Sign in as a different user",
+      "wrongPassword": "Incorrect password."
+    },
+    "menu": {
+      "lock": "Lock now",
+      "signOut": "Sign out"
+    }
+  },
+  "errors": {
+    "INVALID_CREDENTIALS": "Incorrect email or password.",
+    "ACCOUNT_LOCKED_one": "Too many failed attempts. Try again in {{count}} minute.",
+    "ACCOUNT_LOCKED_other": "Too many failed attempts. Try again in {{count}} minutes.",
+    "ACCOUNT_DISABLED": "This account has been disabled. Contact your administrator.",
+    "INVALID_CODE": "That code is not valid. Check your authenticator app and try again.",
+    "SESSION_EXPIRED": "Your sign-in timed out. Please start again.",
+    "WRONG_STAGE": "Something changed. Please try again.",
+    "SETUP_ALREADY_DONE": "CI Inventory is already set up. Please sign in.",
+    "WEAK_PASSWORD": "The password doesn't meet the requirements.",
+    "PASSWORD_REUSED": "Choose a password different from your current one.",
+    "INVALID_INPUT": "Please check the information you entered.",
+    "UNAUTHENTICATED": "Please sign in again.",
+    "FORBIDDEN": "You don't have permission to do that.",
+    "INTERNAL_ERROR": "Something went wrong. Please try again.",
+    "DUPLICATE": "That name or SKU is already in use.",
+    "NOT_FOUND": "This record no longer exists.",
+    "CATEGORY_IN_USE": "This category is used by {{items}} item(s), so it cannot be deleted.",
+    "LOCATION_HAS_STOCK": "This location still holds stock for {{items}} item(s). Move it out before archiving.",
+    "LOCATION_ARCHIVED": "That location is archived.",
+    "ITEM_ARCHIVED": "Archived items cannot be moved. Restore it first.",
+    "INSUFFICIENT_STOCK": "Not enough stock at this location (available: {{available}}).",
+    "NO_CHANGE": "The counted quantity matches the current stock — nothing to adjust.",
+    "SAME_LOCATION": "Choose two different locations.",
+    "LOCATION_REQUIRED": "Choose a default location to receive the opening quantity.",
+    "INVALID_IMAGE": "That file is not a supported image (JPEG, PNG, WebP, GIF, BMP up to 15 MB).",
+    "STEP_UP_REQUIRED": "Please confirm with your authenticator code.",
+    "CANNOT_CHANGE_SELF": "You can’t do that to your own account. Ask another administrator.",
+    "LAST_ADMIN": "There must always be at least one active administrator.",
+    "BACKUP_INVALID": "That file is not a CI Inventory backup.",
+    "BACKUP_PASSWORD": "Wrong backup password, or the file has been altered.",
+    "BACKUP_TOO_NEW": "This backup was made by a newer version of CI Inventory. Update the app first.",
+    "BACKUP_CORRUPT": "The backup is damaged and cannot be restored.",
+    "BACKUP_TAMPERED": "The audit log inside this backup has been tampered with. It will not be restored.",
+    "RESTORE_EXPIRED": "The restore timed out. Choose the backup file again."
+  },
+  "items": {
+    "subtitle": "Every item, its stock on hand and where it is kept.",
+    "new": "New item",
+    "edit": "Edit item",
+    "saved": "Item saved",
+    "created": "Item {{sku}} created",
+    "searchPlaceholder": "Search by name or SKU…",
+    "allCategories": "All categories",
+    "lowStockOnly": "Low stock only",
+    "showArchived": "Show archived",
+    "empty": "No items yet",
+    "emptyBody": "Add the office supplies and equipment you keep in stock.",
+    "noMatches": "No items match these filters",
+    "archived": "Archived",
+    "low": "Low",
+    "lowStock": "Low stock",
+    "uncategorised": "Uncategorised",
+    "backToList": "All items",
+    "byLocation": "Stock by location",
+    "noStock": "No stock on hand.",
+    "history": "Movement history",
+    "addPhoto": "Add photo",
+    "changePhoto": "Change photo",
+    "removePhoto": "Remove photo",
+    "archive": "Archive",
+    "restore": "Restore",
+    "restored": "Item restored",
+    "archiveTitle": "Archive this item?",
+    "archiveBody": "“{{name}}” will be hidden from lists and can no longer be moved in or out. Its history is kept, and you can restore it later.",
+    "duplicateSku": "An item with this SKU already exists.",
+    "invalidCost": "Enter an amount like 12.50.",
+    "skuHint": "Letters, digits and . _ - only (max 40).",
+    "minStockHint": "You are alerted when stock falls to this level. 0 = no alert.",
+    "openingHint": "Received into the default location now.",
+    "fields": {
+      "item": "Item",
+      "sku": "SKU",
+      "nameEn": "Name (English)",
+      "nameKm": "Name (Khmer)",
+      "category": "Category",
+      "location": "Default location",
+      "unit": "Unit",
+      "minStock": "Min. stock",
+      "unitCost": "Unit cost",
+      "opening": "Opening quantity",
+      "onHand": "On hand",
+      "value": "Stock value"
+    }
+  },
+  "stock": {
+    "subtitle": "Every receipt, issue, transfer and count — append-only and audited.",
+    "empty": "No stock movements yet",
+    "emptyBody": "Movements appear here as stock is received, issued, moved or counted.",
+    "allTypes": "All types",
+    "pickItem": "Type a SKU or name…",
+    "available": "Available here: {{qty}} {{unit}}",
+    "issuedToHint": "Person or department",
+    "actions": {
+      "in": "Stock in",
+      "out": "Stock out",
+      "transfer": "Transfer",
+      "adjust": "Count / adjust"
+    },
+    "done": {
+      "in": "Stock received",
+      "out": "Stock issued",
+      "transfer": "Stock transferred",
+      "adjust": "Stock count recorded"
+    },
+    "types": {
+      "in": "In",
+      "out": "Out",
+      "adjust": "Adjust",
+      "transfer_in": "Transfer in",
+      "transfer_out": "Transfer out"
+    },
+    "fields": {
+      "item": "Item",
+      "location": "Location",
+      "from": "From",
+      "to": "To",
+      "quantity": "Quantity",
+      "counted": "Counted quantity",
+      "unitCost": "Unit cost (optional)",
+      "issuedTo": "Issued to",
+      "reason": "Note",
+      "reasonRequired": "Reason (required)",
+      "date": "Date",
+      "type": "Type",
+      "details": "Details",
+      "by": "By"
+    }
+  },
+  "categories": {
+    "subtitle": "Group items, e.g. stationery, cleaning, IT accessories.",
+    "new": "New category",
+    "edit": "Edit category",
+    "items": "Items",
+    "empty": "No categories yet",
+    "emptyBody": "Create categories to group and filter items.",
+    "duplicate": "A category with this name already exists.",
+    "deleteTitle": "Delete category?",
+    "deleteBody": "“{{name}}” will be deleted. Categories that are still used by items cannot be deleted."
+  },
+  "locations": {
+    "subtitle": "Storerooms, offices and shelves where stock is kept.",
+    "new": "New location",
+    "edit": "Edit location",
+    "name": "Name",
+    "namePlaceholder": "e.g. Main storeroom",
+    "description": "Description",
+    "itemsHeld": "Items held",
+    "empty": "No locations yet",
+    "emptyBody": "Add at least one location before receiving stock.",
+    "duplicate": "A location with this name already exists.",
+    "archived": "Location archived",
+    "restored": "Location restored"
+  },
+  "labels": {
+    "button": "QR label",
+    "title": "QR label",
+    "subtitle": "Scan to identify this item. Print and stick it on the shelf or box.",
+    "copies": "Copies",
+    "print": "Print"
+  },
+  "export": {
+    "csv": "Export CSV",
+    "saved": "Saved {{file}}"
+  },
+  "stepUp": {
+    "title": "Confirm it’s you",
+    "body": "Enter the current code from your authenticator app. Admin actions then stay unlocked for 5 minutes.",
+    "confirm": "Confirm"
+  },
+  "users": {
+    "subtitle": "Staff accounts, roles and access.",
+    "new": "New user",
+    "newHint": "They receive a temporary password and link their phone at first sign-in.",
+    "create": "Create user",
+    "edit": "Edit user",
+    "duplicate": "A user with this email already exists.",
+    "role": "Role",
+    "user": "User",
+    "status": "Status",
+    "lastSignIn": "Last sign-in",
+    "never": "Never",
+    "you": "you",
+    "statusActive": "Active",
+    "statusDisabled": "Disabled",
+    "statusLocked": "Locked",
+    "statusNoPhone": "No phone linked",
+    "statusTempPassword": "Temporary password",
+    "unlock": "Unlock",
+    "unlocked": "Account unlocked",
+    "resetPassword": "Reset password",
+    "resetAuthenticator": "Reset phone link",
+    "disable": "Disable",
+    "enable": "Enable",
+    "disabled": "User disabled",
+    "enabled": "User enabled",
+    "authenticatorReset": "Phone link reset — they will link a new phone at next sign-in",
+    "empty": "No users",
+    "tempTitle": "Temporary password",
+    "tempFor": "For {{email}}",
+    "tempDone": "I have given it to them",
+    "tempWarning": "This password is shown only once. Give it to the person directly; they must choose their own password and link their phone when they first sign in.",
+    "roleHints": {
+      "admin": "Full access, including users, settings, backups and the audit log.",
+      "storekeeper": "Manage items and record stock movements.",
+      "viewer": "Read-only access and exports."
+    },
+    "confirm": {
+      "disable": {
+        "title": "Disable this user?",
+        "body": "{{name}} will no longer be able to sign in. Their history is kept.",
+        "action": "Disable"
+      },
+      "enable": {
+        "title": "Enable this user?",
+        "body": "{{name}} will be able to sign in again.",
+        "action": "Enable"
+      },
+      "resetPassword": {
+        "title": "Reset password?",
+        "body": "{{name}}’s current password stops working. You will see a new temporary password once.",
+        "action": "Reset password"
+      },
+      "resetAuthenticator": {
+        "title": "Reset phone link?",
+        "body": "Use this if {{name}} lost their phone. Their authenticator and recovery codes stop working, and they link a new phone at next sign-in.",
+        "action": "Reset phone link"
+      }
+    }
+  },
+  "security": {
+    "recoveryTitle": "Recovery codes",
+    "recoveryHint": "Create a fresh set of 10 codes. Your old codes stop working immediately.",
+    "recoveryButton": "Generate new codes",
+    "recoveryDone": "New recovery codes created. Save them now — they will not be shown again.",
+    "activityTitle": "Recent sign-in activity",
+    "activityHint": "If you see something you don’t recognise, change your password and tell an administrator."
+  },
+  "adminSettings": {
+    "title": "Organisation & security policy",
+    "hint": "Applies to everyone using CI Inventory on this computer.",
+    "office": "Office name",
+    "officeHint": "Shown in the sidebar and on QR labels.",
+    "idle": "Auto-lock after (minutes)",
+    "idleHint": "1–240. The app locks after this much inactivity on the computer.",
+    "reminder": "Backup reminder (days)",
+    "reminderHint": "Remind admins when the last backup is older than this."
+  },
+  "backup": {
+    "title": "Backup & restore",
+    "last": "Last backup: {{when}}",
+    "never": "No backup has been made yet.",
+    "create": "Create a backup",
+    "createHint": "Saves all data in one encrypted file. You need the backup password to restore it — it cannot be recovered if lost.",
+    "password": "Backup password",
+    "createButton": "Save encrypted backup",
+    "saved": "Backup saved: {{file}}",
+    "restore": "Restore from a backup",
+    "restoreHint": "Replaces ALL current data with the backup. A safety copy of the current data is kept automatically.",
+    "chooseFile": "Choose backup file…",
+    "wrongPassword": "Wrong backup password, or the file has been altered.",
+    "confirmTitle": "Restore this backup?",
+    "verified": "Backup decrypted and verified: database intact, audit log untampered.",
+    "createdAt": "Backup created",
+    "contents": "Contains",
+    "counts": "Items: {{items}} · Movements: {{movements}} · Users: {{users}}",
+    "confirmButton": "Replace data and restart",
+    "confirmWarning": "All current data on this computer will be replaced. Everyone will need to sign in again.",
+    "restarting": "Restoring…",
+    "restartingBody": "The app is restarting with the restored data.",
+    "reminderNever": "No backup has been made yet. Protect your data with an encrypted backup.",
+    "reminderOld_one": "The last backup is {{count}} day old.",
+    "reminderOld_other": "The last backup is {{count}} days old.",
+    "reminderAction": "Back up now"
+  },
+  "audit": {
+    "subtitle": "Every sign-in and change, in a tamper-evident chain.",
+    "verify": "Verify integrity",
+    "verifyOk": "Audit log verified: all {{count}} entries are intact and untampered.",
+    "verifyBroken": "Audit log integrity check FAILED at entry #{{id}} ({{reason}}). The log may have been tampered with — contact your administrator.",
+    "reasons": {
+      "gap": "missing entry",
+      "prev_hash": "broken link",
+      "hash": "edited entry",
+      "truncated": "entries removed from the end"
+    },
+    "search": "Search actions, users or details…",
+    "user": "User",
+    "action": "Action",
+    "system": "System",
+    "actions": {
+      "auth.setup_admin": "Set up the app",
+      "auth.login": "Signed in",
+      "auth.login_failed": "Failed sign-in attempt",
+      "auth.account_locked": "Account locked",
+      "auth.logout": "Signed out",
+      "auth.lock": "Locked the app",
+      "auth.unlock": "Unlocked the app",
+      "auth.totp_enrolled": "Linked authenticator",
+      "auth.recovery_code_used": "Used a recovery code",
+      "auth.password_changed": "Changed password",
+      "auth.step_up": "Confirmed with authenticator",
+      "auth.recovery_codes_regenerated": "New recovery codes",
+      "user.create": "Created user",
+      "user.update": "Updated user",
+      "user.disable": "Disabled user",
+      "user.enable": "Enabled user",
+      "user.unlock": "Unlocked user",
+      "user.reset_password": "Reset password",
+      "user.reset_authenticator": "Reset authenticator",
+      "item.create": "Created item",
+      "item.update": "Updated item",
+      "item.archive": "Archived item",
+      "item.restore": "Restored item",
+      "item.photo_set": "Set item photo",
+      "item.photo_remove": "Removed item photo",
+      "category.create": "Created category",
+      "category.update": "Updated category",
+      "category.delete": "Deleted category",
+      "location.create": "Created location",
+      "location.update": "Updated location",
+      "location.archive": "Archived location",
+      "location.restore": "Restored location",
+      "stock.in": "Stock in",
+      "stock.out": "Stock out",
+      "stock.adjust": "Stock count / adjust",
+      "stock.transfer": "Stock transfer",
+      "export.csv": "Exported CSV",
+      "settings.update": "Changed settings",
+      "backup.create": "Created backup",
+      "backup.restore_rejected": "Rejected a backup file",
+      "backup.restored": "Restored from backup",
+      "backup.replaced_by_restore": "Data replaced by a restore",
+      "database.created": "Database created"
+    }
+  },
+  "updates": {
+    "title": "Updates",
+    "current": "Version {{version}}",
+    "auto": "Check for updates automatically",
+    "checkNow": "Check now",
+    "upToDate": "You have the latest version.",
+    "devBuild": "Updates are off in development builds.",
+    "ready": "Version {{version}} is ready to install.",
+    "availableManual": "Version {{version}} is available.",
+    "restart": "Restart to update",
+    "download": "Download",
+    "states": {
+      "disabled": "updates off",
+      "idle": "up to date",
+      "checking": "checking…",
+      "available": "version {{version}} available",
+      "downloading": "downloading {{percent}}%",
+      "ready": "version {{version}} ready to install",
+      "error": "could not reach the update server"
+    },
+    "manualOnly": "New versions are installed manually — ask your administrator for the latest installer."
+  }
+}
