@@ -19,11 +19,14 @@ import {
   stockMovementInput,
   type ItemLabel
 } from '@shared/inventory'
+import { badgePayload, staffInput, staffSetPin, staffUpdate, type StaffBadge } from '@shared/staff'
 import type { InventoryService, LowStockAlert } from '../services/inventory'
+import { confirmRecipient, type StaffService } from '../services/staff'
 import { chooseOpenPath, chooseSavePath } from '../dialogs'
 import { processPhoto } from '../services/photo'
 import { inventoryAnalytics } from '../services/analytics'
 import type { Db } from '../db/client'
+import { AppError } from './errors'
 import { handle } from './router'
 
 const WRITE: readonly Role[] = ['admin', 'storekeeper']
@@ -44,7 +47,7 @@ function notifyLowStock(alert: LowStockAlert | null): void {
   }).show()
 }
 
-export function registerInventoryHandlers(inv: InventoryService, db: Db): void {
+export function registerInventoryHandlers(inv: InventoryService, staff: StaffService, db: Db): void {
   /** Runs a mutation, then notifies renderers. */
   const mutate =
     <A extends unknown[], R>(fn: (...args: A) => R) =>
@@ -103,13 +106,47 @@ export function registerInventoryHandlers(inv: InventoryService, db: Db): void {
     return { sku: item.sku, nameEn: item.nameEn, nameKm: item.nameKm, qrDataUrl }
   })
 
-  // ---- stock
+  // ---- staff (recipients). Anyone signed in can see the directory; the storeroom team manages it.
+  handle(Channels.staffList, z.object({ includeArchived: z.boolean().optional() }).optional(), (input) => staff.list(input?.includeArchived ?? false))
+  handle(Channels.staffGet, id, (input) => staff.get(input.id))
+  handle(Channels.staffCreate, staffInput, mutate((input, { user }) => staff.create(user!, input)), WRITE)
+  handle(Channels.staffUpdate, staffUpdate, mutate((input, { user }) => staff.update(user!, input)), WRITE)
+  handle(Channels.staffSetArchived, archive, mutate((input, { user }) => staff.setArchived(user!, input.id, input.archived)), WRITE)
+  handle(
+    Channels.staffSetPin,
+    staffSetPin,
+    async (input, { user }) => {
+      await staff.setPin(user!, input.id, input.pin)
+      broadcastChanged()
+    },
+    WRITE
+  )
+  handle(
+    Channels.staffBadge,
+    id,
+    async (input): Promise<StaffBadge> => {
+      const member = staff.get(input.id)
+      const qrDataUrl = await QRCode.toDataURL(badgePayload(member.code), { errorCorrectionLevel: 'M', margin: 1, width: 320 })
+      return { code: member.code, name: member.name, department: member.department, qrDataUrl }
+    },
+    WRITE
+  )
+
+  // ---- stock. A stock-out is only recorded after the recipient's PIN checks out (see confirmRecipient).
   handle(
     Channels.stockRecord,
     stockMovementInput,
-    mutate((input, { user }) => {
-      notifyLowStock(inv.recordMovement(user!, input).lowStock)
-    }),
+    async (input, { user }) => {
+      const recipient = await confirmRecipient(db, staff, user!, input).catch((err: unknown) => {
+        // A wrong PIN changes the staff record (failure count / lock): let screens refresh.
+        if (err instanceof AppError && (err.code === 'PIN_WRONG' || err.code === 'PIN_LOCKED')) broadcastChanged()
+        throw err
+      })
+      const { lowStock, movementId } = inv.recordMovement(user!, input, recipient)
+      broadcastChanged()
+      notifyLowStock(lowStock)
+      return { movementId }
+    },
     WRITE
   )
   handle(Channels.stockList, movementListQuery.partial().optional(), (input) => inv.listMovements(input ?? {}))

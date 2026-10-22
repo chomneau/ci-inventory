@@ -43,7 +43,7 @@ export function useMovements(q: { itemId?: number | null; type?: Movement['type'
 }
 
 /** Paged ledger for the movements screen: each page is fetched with an offset, so history of any length loads. */
-export function useMovementPages(q: { type?: Movement['type']; search?: string }, pageSize: number) {
+export function useMovementPages(q: { type?: Movement['type']; search?: string; staffId?: number }, pageSize: number) {
   return useInfiniteQuery({
     queryKey: keys.movements({ ...q, paged: pageSize }),
     queryFn: ({ pageParam }) => unwrap(window.ci.stock.list({ ...q, limit: pageSize, offset: pageParam })),

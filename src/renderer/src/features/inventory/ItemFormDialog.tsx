@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -27,8 +27,11 @@ export function ItemFormDialog({ open, onOpenChange, item }: { open: boolean; on
   const [nameEn, setNameEn] = useState(item?.nameEn ?? '')
   const [nameKm, setNameKm] = useState(item?.nameKm ?? '')
   const [categoryId, setCategoryId] = useState(item?.categoryId?.toString() ?? '')
-  // A new item defaults to the only location when there is just one.
-  const [locationId, setLocationId] = useState(item?.defaultLocationId?.toString() ?? (!item && locations.length === 1 ? String(locations[0]!.id) : ''))
+  const [locationId, setLocationId] = useState(item?.defaultLocationId?.toString() ?? '')
+  // A new item defaults to the only location when there is just one (locations may load after mount).
+  useEffect(() => {
+    if (open && !item && !locationId && locations.length === 1) setLocationId(String(locations[0]!.id))
+  }, [open, item, locationId, locations])
   const [unit, setUnit] = useState(item?.unit ?? 'pcs')
   const [minStock, setMinStock] = useState(String(item?.minStock ?? 0))
   const [unitCost, setUnitCost] = useState(item ? centsToInput(item.unitCostCents) : '')

@@ -132,6 +132,30 @@ export const itemPhotos = sqliteTable('item_photos', {
   updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull()
 })
 
+/**
+ * People who receive supplies. They don't sign in to the app; each has a personal
+ * PIN (Argon2id hash) that they type to confirm what they receive, and a badge
+ * whose QR code encodes their staff code.
+ */
+export const staff = sqliteTable('staff', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  /** Staff ID printed on the badge; always stored upper-cased. */
+  code: text('code').notNull().unique(),
+  name: text('name').notNull(),
+  department: text('department'),
+  /** Null until the person chooses a PIN; they cannot confirm receipts before that. */
+  pinHash: text('pin_hash'),
+  pinSetAt: integer('pin_set_at', { mode: 'timestamp_ms' }),
+  /** The app user at whose screen the PIN was chosen (shown on the staff record). */
+  pinSetBy: integer('pin_set_by').references(() => users.id, { onDelete: 'restrict' }),
+  pinFailedCount: integer('pin_failed_count').notNull().default(0),
+  pinLockedUntil: integer('pin_locked_until', { mode: 'timestamp_ms' }),
+  archivedAt: integer('archived_at', { mode: 'timestamp_ms' }),
+  ...timestamps
+})
+
+export const CONFIRMATION_METHODS = ['pin'] as const
+
 export const MOVEMENT_TYPES = ['in', 'out', 'adjust', 'transfer_out', 'transfer_in'] as const
 export type MovementType = (typeof MOVEMENT_TYPES)[number]
 
@@ -156,6 +180,10 @@ export const stockMovements = sqliteTable(
     unitCostCents: integer('unit_cost_cents'),
     transferGroup: text('transfer_group'),
     issuedTo: text('issued_to'),
+    /** The staff member who received the items (stock out). */
+    staffId: integer('staff_id').references(() => staff.id, { onDelete: 'restrict' }),
+    /** How the recipient confirmed receipt; null = not confirmed (older records, or policy off). */
+    confirmation: text('confirmation', { enum: CONFIRMATION_METHODS }),
     reason: text('reason'),
     createdBy: integer('created_by')
       .notNull()
@@ -165,6 +193,7 @@ export const stockMovements = sqliteTable(
   (t) => [
     index('stock_movements_item_location_idx').on(t.itemId, t.locationId),
     index('stock_movements_created_at_idx').on(t.createdAt),
+    index('stock_movements_staff_idx').on(t.staffId),
     check('stock_movements_type_check', sql`${t.type} in ('in', 'out', 'adjust', 'transfer_out', 'transfer_in')`),
     check(
       'stock_movements_sign_check',

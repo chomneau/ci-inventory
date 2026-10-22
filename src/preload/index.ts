@@ -54,6 +54,15 @@ const api: CiApi = {
     photo: (input) => call(Channels.itemsPhoto, input),
     label: (input) => call(Channels.itemsLabel, input)
   },
+  staff: {
+    list: (input) => call(Channels.staffList, input),
+    get: (input) => call(Channels.staffGet, input),
+    create: (input) => call(Channels.staffCreate, input),
+    update: (input) => call(Channels.staffUpdate, input),
+    setArchived: (input) => call(Channels.staffSetArchived, input),
+    setPin: (input) => call(Channels.staffSetPin, input),
+    badge: (input) => call(Channels.staffBadge, input)
+  },
   stock: {
     record: (input) => call(Channels.stockRecord, input),
     list: (input) => call(Channels.stockList, input)

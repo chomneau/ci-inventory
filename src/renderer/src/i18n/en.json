@@ -17,7 +17,8 @@
     "audit": "Audit log",
     "expand": "Expand sidebar",
     "collapse": "Collapse sidebar",
-    "breadcrumbs": "Breadcrumbs"
+    "breadcrumbs": "Breadcrumbs",
+    "staff": "Staff"
   },
   "dashboard": {
     "welcome": "Welcome to CI Inventory",
@@ -200,7 +201,14 @@
     "BACKUP_TOO_NEW": "This backup was made by a newer version of CI Inventory. Update the app first.",
     "BACKUP_CORRUPT": "The backup is damaged and cannot be restored.",
     "BACKUP_TAMPERED": "The audit log inside this backup has been tampered with. It will not be restored.",
-    "RESTORE_EXPIRED": "The restore timed out. Choose the backup file again."
+    "RESTORE_EXPIRED": "The restore timed out. Choose the backup file again.",
+    "PIN_NOT_SET": "This person hasn’t chosen a PIN yet.",
+    "PIN_TOO_SIMPLE": "That PIN is too easy to guess. Avoid repeated digits and runs like 1234.",
+    "PIN_WRONG": "Wrong PIN. Nothing was issued — please try again.",
+    "PIN_LOCKED_one": "Too many wrong PINs. Try again in {{count}} minute, or set a new PIN.",
+    "PIN_LOCKED_other": "Too many wrong PINs. Try again in {{count}} minutes, or set a new PIN.",
+    "STAFF_ARCHIVED": "This staff member is archived.",
+    "STAFF_CONFIRMATION_REQUIRED": "Choose the staff member receiving the items and have them confirm with their PIN."
   },
   "items": {
     "subtitle": "Every item, its stock on hand and where it is kept.",
@@ -279,7 +287,8 @@
       "in": "Stock received",
       "out": "Stock issued",
       "transfer": "Stock transferred",
-      "adjust": "Stock count recorded"
+      "adjust": "Stock count recorded",
+      "outConfirmed": "Issued to {{name}} — confirmed with PIN (ref #{{ref}})"
     },
     "types": {
       "in": "In",
@@ -303,7 +312,8 @@
       "type": "Type",
       "details": "Details",
       "by": "By",
-      "time": "Time"
+      "time": "Time",
+      "issuedToFree": "Or issue to (no confirmation)"
     },
     "today": "Today",
     "yesterday": "Yesterday",
@@ -318,7 +328,18 @@
     "onHandNow": "{{qty}} {{unit}} on hand",
     "changeItem": "Change",
     "noItemMatches": "No item matches this search.",
-    "noItemsYet": "No items yet — create one on the Items page first."
+    "noItemsYet": "No items yet — create one on the Items page first.",
+    "issuedToFreeHint": "Allowed because staff confirmation is turned off in Settings.",
+    "recordedBy": "Recorded by {{name}}",
+    "confirm": {
+      "title": "Recipient confirmation",
+      "body": "{{name}}, enter your PIN to confirm you are receiving {{qty}} {{unit}} of {{item}}.",
+      "pinLabel": "PIN for {{name}}",
+      "locked": "{{name}}’s PIN is locked after too many wrong tries. Wait, or let them choose a new PIN.",
+      "noPin": "{{name}} hasn’t chosen a PIN yet. They can set one now.",
+      "confirmedTitle": "Receipt confirmed by the recipient’s PIN",
+      "badge": "PIN"
+    }
   },
   "categories": {
     "subtitle": "Group items, e.g. stationery, cleaning, IT accessories.",
@@ -437,7 +458,9 @@
     "idle": "Auto-lock after (minutes)",
     "idleHint": "1–240. The app locks after this much inactivity on the computer.",
     "reminder": "Backup reminder (days)",
-    "reminderHint": "Remind admins when the last backup is older than this."
+    "reminderHint": "Remind admins when the last backup is older than this.",
+    "requireStaff": "Require staff confirmation for every stock-out",
+    "requireStaffHint": "Items can only be issued to a staff member who confirms with their PIN. Turn off only if you need free-text recipients."
   },
   "backup": {
     "title": "Backup & restore",
@@ -616,6 +639,69 @@
       "actions": "Actions",
       "pages": "Go to",
       "items": "Items"
+    }
+  },
+  "staff": {
+    "subtitle": "People who receive supplies. Each confirms what they take with a personal PIN.",
+    "new": "New staff member",
+    "edit": "Edit staff member",
+    "created": "{{name}} added ({{code}})",
+    "duplicate": "That staff ID is already in use.",
+    "codeHint": "Letters, digits, . _ - (max 20)",
+    "codeAuto": "Leave empty to generate one (S-0001…).",
+    "departmentPlaceholder": "e.g. Finance",
+    "archived": "{{name}} archived",
+    "restored": "{{name}} restored",
+    "searchPlaceholder": "Search name, staff ID or department…",
+    "noMatches": "No staff member matches this search.",
+    "empty": "No staff yet",
+    "emptyBody": "Add the people who collect supplies. Each one sets a PIN to confirm what they receive.",
+    "noneYet": "No staff yet — add people on the Staff page first.",
+    "pickPlaceholder": "Search name or staff ID, or scan a badge…",
+    "fields": {
+      "name": "Full name",
+      "code": "Staff ID",
+      "department": "Department",
+      "pin": "PIN",
+      "receipts": "Items received",
+      "lastReceipt": "Last received",
+      "recipient": "Received by"
+    },
+    "summary": {
+      "total": "Staff",
+      "ready": "Ready (PIN set)",
+      "noPin": "Without PIN",
+      "locked": "PIN locked"
+    },
+    "pin": {
+      "locked": "Locked",
+      "set": "PIN set",
+      "notSet": "No PIN",
+      "tooSimple": "Too easy to guess — avoid repeated digits and runs like 1234.",
+      "saved": "PIN saved for {{name}}",
+      "setTitle": "Set PIN for {{name}}",
+      "resetTitle": "New PIN for {{name}}",
+      "handOver": "Turn the screen to {{name}} and let them type a PIN only they know. Don’t watch.",
+      "save": "Save PIN",
+      "new": "New PIN",
+      "confirm": "Type it again",
+      "rules": "4 to 6 digits.",
+      "mismatch": "The two PINs don’t match.",
+      "reset": "New PIN",
+      "setNow": "Set PIN",
+      "setOnBy": "PIN chosen {{date}} at {{name}}’s desk"
+    },
+    "badge": {
+      "title": "Staff badge",
+      "subtitle": "Print and laminate. Scanning the QR code selects this person when issuing supplies."
+    },
+    "detail": {
+      "confirmed": "Confirmed with PIN",
+      "last90": "Receipts (90 days)",
+      "items90": "Different items (90 days)",
+      "history": "Items received",
+      "historyHint": "Every stock-out to this person, with who recorded it and how they confirmed.",
+      "noneYet": "Nothing received yet"
     }
   }
 }

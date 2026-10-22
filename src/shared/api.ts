@@ -1,6 +1,7 @@
 import type { AppSettings, AuditEntry, AuditVerificationResult, BackupSummary, ManagedUser, TemporaryPassword } from './admin'
 import type { AuthStatus, Role, TotpEnrollment } from './auth'
 import type { UpdateStatus } from './updates'
+import type { StaffBadge, StaffMember } from './staff'
 import type { IpcResult } from './ipc-result'
 import type {
   Category,
@@ -72,9 +73,28 @@ export interface CiApi {
     photo(input: { id: number; variant: 'image' | 'thumbnail' }): Call<string | null>
     label(input: { id: number }): Call<ItemLabel>
   }
+  staff: {
+    list(input?: { includeArchived?: boolean }): Call<StaffMember[]>
+    get(input: { id: number }): Call<StaffMember>
+    /** Leave `code` empty to have one generated. */
+    create(input: { code?: string; name: string; department?: string | null }): Call<StaffMember>
+    update(input: { id: number; code: string; name: string; department?: string | null }): Call<StaffMember>
+    setArchived(input: { id: number; archived: boolean }): Call<void>
+    /** Typed by the staff member themselves; also clears a PIN lockout. */
+    setPin(input: { id: number; pin: string }): Call<void>
+    badge(input: { id: number }): Call<StaffBadge>
+  }
   stock: {
-    record(input: StockMovementInput): Call<void>
-    list(input?: { itemId?: number | null; type?: Movement['type']; limit?: number; offset?: number }): Call<Movement[]>
+    /** For a stock-out to a staff member, include `staffId` and the PIN they typed. */
+    record(input: StockMovementInput): Call<{ movementId: number }>
+    list(input?: {
+      itemId?: number | null
+      staffId?: number | null
+      type?: Movement['type']
+      search?: string
+      limit?: number
+      offset?: number
+    }): Call<Movement[]>
   }
   dashboard: {
     summary(): Call<DashboardSummary>
@@ -103,7 +123,13 @@ export interface CiApi {
   }
   settings: {
     get(): Call<AppSettings>
-    update(input: { idleLockMinutes?: number; officeName?: string; backupReminderDays?: number; updatesEnabled?: boolean }): Call<AppSettings>
+    update(input: {
+      idleLockMinutes?: number
+      officeName?: string
+      backupReminderDays?: number
+      updatesEnabled?: boolean
+      requireStaffConfirmation?: boolean
+    }): Call<AppSettings>
   }
   backup: {
     /** Encrypts with `password` and writes via a native save dialog. */

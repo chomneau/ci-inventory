@@ -69,7 +69,11 @@ export const stockMovementInput = z.discriminatedUnion('type', [
     itemId: id,
     locationId: id,
     quantity,
+    /** Free-text recipient; only allowed when the office doesn't require staff confirmation. */
     issuedTo: optionalText(120),
+    /** The staff member receiving the items, who confirms with their PIN. */
+    staffId: id.optional(),
+    pin: z.string().regex(/^\d{4,6}$/).optional(),
     reason: optionalText(300)
   }),
   z.object({
@@ -93,6 +97,8 @@ export type StockMovementInput = z.input<typeof stockMovementInput>
 
 export const movementListQuery = z.object({
   itemId: optionalId,
+  /** Movements received by this staff member. */
+  staffId: optionalId,
   type: z.enum(['in', 'out', 'adjust', 'transfer_out', 'transfer_in']).optional(),
   /** Case-insensitive substring match on SKU, item names, location, recipient, reason or author. */
   search: z.string().trim().max(100).optional(),
@@ -168,6 +174,11 @@ export interface Movement {
   quantity: number
   unitCostCents: number | null
   issuedTo: string | null
+  staffId: number | null
+  staffCode: string | null
+  staffName: string | null
+  /** 'pin' when the recipient confirmed receipt with their PIN. */
+  confirmation: 'pin' | null
   reason: string | null
   createdByName: string
   createdAt: number

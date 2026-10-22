@@ -1,5 +1,6 @@
 import {
   ArrowLeftRight,
+  IdCard,
   LayoutDashboard,
   MapPin,
   Package,
@@ -29,6 +30,7 @@ export const NAV_SECTIONS: { titleKey: string; items: NavItem[] }[] = [
     items: [
       { to: '/items', labelKey: 'nav.items', icon: Package },
       { to: '/stock', labelKey: 'nav.stock', icon: ArrowLeftRight },
+      { to: '/staff', labelKey: 'nav.staff', icon: IdCard },
       { to: '/categories', labelKey: 'nav.categories', icon: Tags },
       { to: '/locations', labelKey: 'nav.locations', icon: MapPin }
     ]

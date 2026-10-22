@@ -27,7 +27,7 @@ import { useCanWrite, useItem, useMovements, usePhoto } from './hooks'
 import { ItemFormDialog } from './ItemFormDialog'
 import { LabelDialog } from './LabelDialog'
 import { MovementDialog, type MovementKind } from './MovementDialog'
-import { ConfirmDialog, ItemThumb, MovementBadge, SignedQuantity } from './parts'
+import { ConfirmDialog, ItemThumb, MovementBadge, MovementDetails, SignedQuantity } from './parts'
 
 export function ItemDetailPage() {
   const { t } = useTranslation()
@@ -234,8 +234,8 @@ export function ItemDetailPage() {
                     <Th>{t('stock.fields.date')}</Th>
                     <Th>{t('stock.fields.type')}</Th>
                     <Th className="text-right">{t('stock.fields.quantity')}</Th>
-                    <Th className="hidden @3xl:table-cell">{t('stock.fields.location')}</Th>
-                    <Th className="hidden @6xl:table-cell">{t('stock.fields.details')}</Th>
+                    <Th className="hidden @5xl:table-cell">{t('stock.fields.location')}</Th>
+                    <Th className="hidden @3xl:table-cell">{t('stock.fields.details')}</Th>
                   </tr>
                 </thead>
                 <tbody>
@@ -248,10 +248,9 @@ export function ItemDetailPage() {
                       <Td className="text-right">
                         <SignedQuantity value={m.quantity} unit={m.unit} />
                       </Td>
-                      <Td className="hidden @3xl:table-cell">{m.locationName}</Td>
-                      <Td className="hidden text-muted-foreground @6xl:table-cell">
-                        {[m.issuedTo, m.reason].filter(Boolean).join(' · ') || '—'}
-                        <div className="text-xs">{m.createdByName}</div>
+                      <Td className="hidden @5xl:table-cell">{m.locationName}</Td>
+                      <Td className="hidden max-w-72 @3xl:table-cell">
+                        <MovementDetails movement={m} showAuthor />
                       </Td>
                     </tr>
                   ))}

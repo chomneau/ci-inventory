@@ -34,7 +34,8 @@ export const appSettingsUpdate = z.object({
   idleLockMinutes: z.number().int().min(1).max(240).optional(),
   officeName: z.string().trim().min(1).max(120).optional(),
   backupReminderDays: z.number().int().min(1).max(90).optional(),
-  updatesEnabled: z.boolean().optional()
+  updatesEnabled: z.boolean().optional(),
+  requireStaffConfirmation: z.boolean().optional()
 })
 
 export interface AppSettings {
@@ -43,6 +44,8 @@ export interface AppSettings {
   backupReminderDays: number
   /** Check GitHub Releases for new versions (admins can turn this off). */
   updatesEnabled: boolean
+  /** Every stock-out must name a staff member who confirms with their PIN. */
+  requireStaffConfirmation: boolean
   /** Epoch ms of the last successful backup, or null if never. */
   lastBackupAt: number | null
 }

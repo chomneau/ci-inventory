@@ -1,6 +1,6 @@
 import { count } from 'drizzle-orm'
 import type { Db } from '../db/client'
-import { categories, items, locations, stockMovements, users } from '../db/schema'
+import { categories, items, locations, staff, stockMovements, users } from '../db/schema'
 
 /**
  * DEVELOPMENT ONLY (never runs in a packaged build): fills an empty inventory with
@@ -26,6 +26,16 @@ export function seedDemoData(db: Db, now = new Date()): boolean {
   const main = loc('Main storeroom')
   const office = loc('Office 2F')
   const field = loc('Field office Siem Reap')
+  // Staff directory without PINs: each person chooses their own PIN at the desk.
+  db.insert(staff)
+    .values([
+      { code: 'S-0001', name: 'Dara Sok', department: 'Finance' },
+      { code: 'S-0002', name: 'Sophea Chan', department: 'Programs' },
+      { code: 'S-0003', name: 'Vanna Kim', department: 'HR' },
+      { code: 'S-0004', name: 'Rithy Meas', department: 'Field team' },
+      { code: 'S-0005', name: 'Chenda Ly', department: 'Communications' }
+    ])
+    .run()
 
   const catalog: [string, string, string, number, string, number, number, number][] = [
     // sku, nameEn, nameKm, category, unit, min, costCents, opening

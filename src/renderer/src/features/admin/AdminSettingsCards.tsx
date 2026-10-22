@@ -27,12 +27,14 @@ export function OrganisationCard() {
   const [idle, setIdle] = useState('')
   const [office, setOffice] = useState('')
   const [reminder, setReminder] = useState('')
+  const [requireStaff, setRequireStaff] = useState(true)
 
   useEffect(() => {
     if (!settings) return
     setIdle(String(settings.idleLockMinutes))
     setOffice(settings.officeName)
     setReminder(String(settings.backupReminderDays))
+    setRequireStaff(settings.requireStaffConfirmation)
   }, [settings])
 
   const idleN = Number(idle)
@@ -42,7 +44,9 @@ export function OrganisationCard() {
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault()
     const ok = await run(() =>
-      withStepUp(() => unwrap(window.ci.settings.update({ idleLockMinutes: idleN, officeName: office.trim(), backupReminderDays: reminderN })))
+      withStepUp(() => unwrap(
+          window.ci.settings.update({ idleLockMinutes: idleN, officeName: office.trim(), backupReminderDays: reminderN, requireStaffConfirmation: requireStaff })
+        ))
     )
     if (ok) {
       await qc.invalidateQueries({ queryKey: ['settings'] })
@@ -72,6 +76,13 @@ export function OrganisationCard() {
           <Field label={t('adminSettings.reminder')} htmlFor="s-reminder" hint={t('adminSettings.reminderHint')}>
             <Input id="s-reminder" inputMode="numeric" value={reminder} onChange={(e) => setReminder(e.target.value.replace(/\D/g, '').slice(0, 2))} />
           </Field>
+          <label htmlFor="s-require-staff" className="flex items-start gap-3 rounded-lg border p-3 sm:col-span-2">
+            <input id="s-require-staff" type="checkbox" className="mt-0.5 size-4 shrink-0 accent-[#0279B4]" checked={requireStaff} onChange={(e) => setRequireStaff(e.target.checked)} />
+            <span>
+              <span className="block text-sm font-medium">{t('adminSettings.requireStaff')}</span>
+              <span className="block text-sm text-muted-foreground">{t('adminSettings.requireStaffHint')}</span>
+            </span>
+          </label>
           <div className="sm:col-span-2">
             <Button type="submit" disabled={pending || !valid}>
               {t('common.save')}

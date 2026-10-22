@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { ChevronRight, Languages, Moon, Search, Sun } from 'lucide-react'
 import { Button } from '@renderer/components/ui/button'
 import { useItem } from '@renderer/features/inventory/hooks'
+import { useStaffMember } from '@renderer/features/staff/hooks'
 import { useFormat } from '@renderer/lib/format'
 import { useTheme } from '@renderer/lib/theme'
 import { NAV_SECTIONS } from './nav'
@@ -17,6 +18,9 @@ function Breadcrumbs() {
   const { pathname } = useLocation()
   const itemMatch = useMatch('/items/:id')
   const { data: item } = useItem(Number(itemMatch?.params.id ?? 0))
+  const staffMatch = useMatch('/staff/:id')
+  const { data: member } = useStaffMember(Number(staffMatch?.params.id ?? 0))
+  const detail = itemMatch ? (item ? name(item) : '…') : staffMatch ? (member?.name ?? '…') : null
   const section = NAV_SECTIONS.find((s) => s.items.some((i) => i.to === pathname || (i.to !== '/' && pathname.startsWith(`${i.to}/`))))
   const page = section?.items.find((i) => i.to === pathname || (i.to !== '/' && pathname.startsWith(`${i.to}/`)))
   if (!section || !page) return null
@@ -28,13 +32,13 @@ function Breadcrumbs() {
           <ChevronRight className="hidden size-3.5 text-muted-foreground sm:block" />
         </>
       ) : null}
-      {itemMatch ? (
+      {detail !== null ? (
         <>
           <Link to={page.to} className="text-muted-foreground hover:text-foreground">
             {t(page.labelKey)}
           </Link>
           <ChevronRight className="size-3.5 text-muted-foreground" />
-          <span className="truncate font-medium">{item ? name(item) : '…'}</span>
+          <span className="truncate font-medium">{detail}</span>
         </>
       ) : (
         <span className="truncate font-medium">{t(page.labelKey)}</span>

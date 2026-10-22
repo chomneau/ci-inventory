@@ -11,6 +11,7 @@ const KEYS = {
   officeName: 'org.officeName',
   backupReminderDays: 'backup.reminderDays',
   updatesEnabled: 'updates.enabled',
+  requireStaffConfirmation: 'stock.requireStaffConfirmation',
   lastBackupAt: 'backup.lastAt'
 } as const
 
@@ -20,6 +21,7 @@ export function getAppSettings(db: Db): AppSettings {
     officeName: getSetting(db, KEYS.officeName, z.string().min(1).max(120), 'CI Cambodia'),
     backupReminderDays: getSetting(db, KEYS.backupReminderDays, z.number().int().min(1).max(90), 7),
     updatesEnabled: getSetting(db, KEYS.updatesEnabled, z.boolean(), true),
+    requireStaffConfirmation: getSetting(db, KEYS.requireStaffConfirmation, z.boolean(), true),
     lastBackupAt: getSetting(db, KEYS.lastBackupAt, z.number().int().nullable(), null)
   }
 }

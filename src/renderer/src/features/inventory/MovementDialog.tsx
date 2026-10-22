@@ -1,7 +1,7 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
-import { MapPin } from 'lucide-react'
+import { MapPin, ShieldCheck, TriangleAlert } from 'lucide-react'
 import { toast } from 'sonner'
 import type { StockMovementInput } from '@shared/inventory'
 import { Alert } from '@renderer/components/ui/alert'
@@ -12,7 +12,11 @@ import { Input } from '@renderer/components/ui/input'
 import { Select } from '@renderer/components/ui/select'
 import { Textarea } from '@renderer/components/ui/textarea'
 import { parseMoney, useFormat } from '@renderer/lib/format'
-import { unwrap, useAction } from '@renderer/lib/ipc'
+import { IpcError, unwrap, useAction } from '@renderer/lib/ipc'
+import { useSettings } from '@renderer/features/admin/hooks'
+import { useStaff } from '@renderer/features/staff/hooks'
+import { PinInput, SetPinDialog } from '@renderer/features/staff/parts'
+import { StaffPicker } from '@renderer/features/staff/StaffPicker'
 import { useItem, useLocations } from './hooks'
 import { ItemPicker } from './parts'
 
@@ -48,6 +52,14 @@ export function MovementDialog({
   const [unitCost, setUnitCost] = useState('')
   const [issuedTo, setIssuedTo] = useState('')
   const [reason, setReason] = useState('')
+  // Stock-out recipient: a staff member who confirms with their PIN (required unless the office turned it off).
+  const requireStaff = useSettings().data?.requireStaffConfirmation ?? true
+  const { data: staffList = [] } = useStaff()
+  const [staffId, setStaffId] = useState<number | null>(null)
+  const recipient = staffList.find((s) => s.id === staffId) ?? null
+  const [pin, setPin] = useState('')
+  const [settingPin, setSettingPin] = useState(false)
+  const pinRef = useRef<HTMLInputElement>(null)
 
   // Sensible default location: the item's default for receipts, else where it is stocked.
   useEffect(() => {
@@ -78,7 +90,9 @@ export function MovementDialog({
         break
       }
       case 'out':
-        input = { ...base, type: 'out', locationId: Number(locationId), quantity: qtyNum, issuedTo: issuedTo || null }
+        input = recipient
+          ? { ...base, type: 'out', locationId: Number(locationId), quantity: qtyNum, staffId: recipient.id, pin }
+          : { ...base, type: 'out', locationId: Number(locationId), quantity: qtyNum, issuedTo: issuedTo || null }
         break
       case 'adjust':
         input = { itemId, type: 'adjust', locationId: Number(locationId), countedQuantity: qtyNum, reason }
@@ -87,18 +101,26 @@ export function MovementDialog({
         input = { ...base, type: 'transfer', fromLocationId: Number(locationId), toLocationId: Number(toLocationId), quantity: qtyNum }
         break
     }
-    const ok = await run(async () => {
-      await unwrap(window.ci.stock.record(input))
-      return true
-    })
-    if (ok) {
-      toast.success(t(`stock.done.${kind}`))
+    const saved = await run(() =>
+      unwrap(window.ci.stock.record(input)).catch((err: unknown) => {
+        // Only a wrong or locked PIN is cleared; other problems (e.g. not enough stock) keep what was typed.
+        if (err instanceof IpcError && (err.code === 'PIN_WRONG' || err.code === 'PIN_LOCKED')) {
+          setPin('')
+          setTimeout(() => pinRef.current?.focus(), 0)
+        }
+        throw err
+      })
+    )
+    if (saved) {
+      toast.success(recipient ? t('stock.done.outConfirmed', { name: recipient.name, ref: saved.movementId }) : t(`stock.done.${kind}`))
       onOpenChange(false)
     }
   }
 
   const needsReason = kind === 'adjust'
-  const canSubmit = itemId && locationId && qtyOk && (kind !== 'transfer' || toLocationId) && (!needsReason || reason.trim())
+  const recipientReady = recipient ? recipient.pinSet && !recipient.pinLocked && /^\d{4,6}$/.test(pin) : !requireStaff
+  const canSubmit =
+    itemId && locationId && qtyOk && (kind !== 'transfer' || toLocationId) && (!needsReason || reason.trim()) && (kind !== 'out' || recipientReady)
 
   return (
     <Dialog
@@ -181,16 +203,62 @@ export function MovementDialog({
               </div>
             </Field>
           ) : null}
-          {kind === 'out' ? (
-            <Field label={t('stock.fields.issuedTo')} htmlFor="mv-to-person">
-              <Input id="mv-to-person" maxLength={120} value={issuedTo} onChange={(e) => setIssuedTo(e.target.value)} placeholder={t('stock.issuedToHint')} />
-            </Field>
-          ) : null}
         </div>
+        {kind === 'out' ? (
+          <Field label={t('staff.fields.recipient')} htmlFor="mv-staff">
+            <StaffPicker
+              id="mv-staff"
+              value={staffId}
+              onChange={(m) => {
+                setStaffId(m?.id ?? null)
+                setPin('')
+              }}
+            />
+          </Field>
+        ) : null}
+        {kind === 'out' && !recipient && !requireStaff ? (
+          <Field label={t('stock.fields.issuedToFree')} htmlFor="mv-to-person" hint={t('stock.issuedToFreeHint')}>
+            <Input id="mv-to-person" maxLength={120} value={issuedTo} onChange={(e) => setIssuedTo(e.target.value)} placeholder={t('stock.issuedToHint')} />
+          </Field>
+        ) : null}
         <Field label={needsReason ? t('stock.fields.reasonRequired') : t('stock.fields.reason')} htmlFor="mv-reason">
-          <Textarea id="mv-reason" maxLength={300} value={reason} onChange={(e) => setReason(e.target.value)} />
+          <Textarea id="mv-reason" maxLength={300} value={reason} onChange={(e) => setReason(e.target.value)} className={kind === 'out' ? 'min-h-16' : undefined} />
         </Field>
+        {kind === 'out' && recipient ? (
+          recipient.pinSet && !recipient.pinLocked ? (
+            <section aria-labelledby="mv-confirm-title" className="rounded-xl border border-ci-blue/30 bg-ci-blue/6 p-4">
+              <div className="mb-3 flex items-start gap-3">
+                <ShieldCheck className="mt-0.5 size-5 shrink-0 text-ci-blue-deep dark:text-ci-blue" />
+                <div className="min-w-0">
+                  <h3 id="mv-confirm-title" className="text-sm font-semibold">
+                    {t('stock.confirm.title')}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {t('stock.confirm.body', {
+                      name: recipient.name,
+                      qty: qtyOk ? number(qtyNum) : '…',
+                      unit: activeItem?.unit ?? '',
+                      item: activeItem ? name(activeItem) : '…'
+                    })}
+                  </p>
+                </div>
+              </div>
+              <PinInput ref={pinRef} id="mv-pin" aria-label={t('stock.confirm.pinLabel', { name: recipient.name })} value={pin} onChange={setPin} />
+            </section>
+          ) : (
+            <div className="flex flex-wrap items-center gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2.5 text-sm" role="status">
+              <TriangleAlert className="size-4 shrink-0 text-amber-600 dark:text-amber-300" />
+              <span className="min-w-0 flex-1">
+                {recipient.pinLocked ? t('stock.confirm.locked', { name: recipient.name }) : t('stock.confirm.noPin', { name: recipient.name })}
+              </span>
+              <Button type="button" size="sm" variant="outline" onClick={() => setSettingPin(true)}>
+                {recipient.pinLocked ? t('staff.pin.reset') : t('staff.pin.setNow')}
+              </Button>
+            </div>
+          )
+        ) : null}
       </form>
+      {settingPin && recipient ? <SetPinDialog member={recipient} onClose={() => setSettingPin(false)} onDone={() => pinRef.current?.focus()} /> : null}
     </Dialog>
   )
 }

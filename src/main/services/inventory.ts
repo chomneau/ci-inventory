@@ -20,10 +20,11 @@ import type {
 } from '@shared/inventory'
 import type { z } from 'zod'
 import type { Db } from '../db/client'
-import { categories, itemPhotos, items, locations, stockMovements, users } from '../db/schema'
+import { categories, itemPhotos, items, locations, staff, stockMovements, users } from '../db/schema'
 import { AppError } from '../ipc/errors'
 import { recordAudit, type DbOrTx } from './audit'
 import { toCsv } from './csv'
+import type { ConfirmedStaff } from './staff'
 
 type In<T extends z.ZodType> = z.output<T>
 
@@ -314,7 +315,16 @@ export class InventoryService {
 
   // ================================================================ stock ledger
 
-  recordMovement(actor: PublicUser, input: In<typeof stockMovementInput>): { lowStock: LowStockAlert | null } {
+  /**
+   * `recipient` is the staff member whose PIN was checked by StaffService.confirmPin;
+   * a stock-out can only be linked to a person through it.
+   */
+  recordMovement(
+    actor: PublicUser,
+    input: In<typeof stockMovementInput>,
+    recipient: ConfirmedStaff | null = null
+  ): { lowStock: LowStockAlert | null; movementId: number } {
+    if (input.type === 'out' && input.staffId !== undefined && recipient?.id !== input.staffId) throw new AppError('STAFF_CONFIRMATION_REQUIRED')
     return this.db.transaction((tx) => {
       const item = tx.select().from(items).where(eq(items.id, input.itemId)).get()
       if (!item) throw new AppError('NOT_FOUND')
@@ -322,23 +332,43 @@ export class InventoryService {
       const before = this.onHand(tx, item.id)
       const base = { itemId: item.id, createdBy: actor.id, reason: input.reason ?? null }
       let details: Record<string, unknown>
+      let movementId: number
 
       switch (input.type) {
         case 'in': {
           this.assertActiveLocation(tx, input.locationId)
-          tx.insert(stockMovements)
+          movementId = tx
+            .insert(stockMovements)
             .values({ ...base, type: 'in', locationId: input.locationId, quantity: input.quantity, unitCostCents: input.unitCostCents ?? null })
-            .run()
+            .returning({ id: stockMovements.id })
+            .get().id
           details = { locationId: input.locationId, quantity: input.quantity, unitCostCents: input.unitCostCents ?? null }
           break
         }
         case 'out': {
           this.assertActiveLocation(tx, input.locationId)
           this.assertAvailable(tx, item.id, input.locationId, input.quantity)
-          tx.insert(stockMovements)
-            .values({ ...base, type: 'out', locationId: input.locationId, quantity: -input.quantity, issuedTo: input.issuedTo ?? null })
-            .run()
-          details = { locationId: input.locationId, quantity: input.quantity, issuedTo: input.issuedTo ?? null }
+          const issuedTo = recipient ? recipient.name : (input.issuedTo ?? null)
+          movementId = tx
+            .insert(stockMovements)
+            .values({
+              ...base,
+              type: 'out',
+              locationId: input.locationId,
+              quantity: -input.quantity,
+              issuedTo,
+              staffId: recipient?.id ?? null,
+              confirmation: recipient?.method ?? null
+            })
+            .returning({ id: stockMovements.id })
+            .get().id
+          details = {
+            locationId: input.locationId,
+            quantity: input.quantity,
+            issuedTo,
+            staff: recipient ? { id: recipient.id, code: recipient.code, name: recipient.name } : null,
+            confirmation: recipient?.method ?? null
+          }
           break
         }
         case 'adjust': {
@@ -346,7 +376,11 @@ export class InventoryService {
           const current = this.onHandAt(tx, item.id, input.locationId)
           const delta = input.countedQuantity - current
           if (delta === 0) throw new AppError('NO_CHANGE')
-          tx.insert(stockMovements).values({ ...base, type: 'adjust', locationId: input.locationId, quantity: delta }).run()
+          movementId = tx
+            .insert(stockMovements)
+            .values({ ...base, type: 'adjust', locationId: input.locationId, quantity: delta })
+            .returning({ id: stockMovements.id })
+            .get().id
           details = { locationId: input.locationId, from: current, to: input.countedQuantity, delta }
           break
         }
@@ -356,12 +390,14 @@ export class InventoryService {
           this.assertActiveLocation(tx, input.toLocationId)
           this.assertAvailable(tx, item.id, input.fromLocationId, input.quantity)
           const transferGroup = randomUUID()
-          tx.insert(stockMovements)
+          movementId = tx
+            .insert(stockMovements)
             .values([
               { ...base, type: 'transfer_out', locationId: input.fromLocationId, quantity: -input.quantity, transferGroup },
               { ...base, type: 'transfer_in', locationId: input.toLocationId, quantity: input.quantity, transferGroup }
             ])
-            .run()
+            .returning({ id: stockMovements.id })
+            .all()[0]!.id
           details = { from: input.fromLocationId, to: input.toLocationId, quantity: input.quantity }
           break
         }
@@ -373,12 +409,13 @@ export class InventoryService {
         action: `stock.${input.type}`,
         entityType: 'item',
         entityId: item.id,
-        details: { sku: item.sku, ...details, reason: input.reason ?? null, onHandBefore: before, onHandAfter: after }
+        details: { sku: item.sku, movementId, ...details, reason: input.reason ?? null, onHandBefore: before, onHandAfter: after }
       })
 
       // Alert only when this movement takes the item across its threshold.
       const crossed = item.minStock > 0 && before > item.minStock && after <= item.minStock
       return {
+        movementId,
         lowStock: crossed ? { itemId: item.id, sku: item.sku, nameEn: item.nameEn, onHand: after, minStock: item.minStock, unit: item.unit } : null
       }
     })
@@ -387,11 +424,12 @@ export class InventoryService {
   listMovements(query: Partial<In<typeof movementListQuery>> = {}): Movement[] {
     const conditions: SQL[] = []
     if (query.itemId) conditions.push(eq(stockMovements.itemId, query.itemId))
+    if (query.staffId) conditions.push(eq(stockMovements.staffId, query.staffId))
     if (query.type) conditions.push(eq(stockMovements.type, query.type))
     const q = query.search?.trim().toLowerCase()
     if (q) {
       // instr() rather than LIKE, so % and _ in the search are literal characters.
-      const cols = [items.sku, items.nameEn, items.nameKm, locations.name, stockMovements.issuedTo, stockMovements.reason, users.displayName]
+      const cols = [items.sku, items.nameEn, items.nameKm, locations.name, stockMovements.issuedTo, stockMovements.reason, users.displayName, staff.code]
       conditions.push(sql`(${sql.join(cols.map((c) => sql`instr(lower(coalesce(${c}, '')), ${q}) > 0`), sql` or `)})`)
     }
     const rows = this.db
@@ -408,6 +446,10 @@ export class InventoryService {
         quantity: stockMovements.quantity,
         unitCostCents: stockMovements.unitCostCents,
         issuedTo: stockMovements.issuedTo,
+        staffId: stockMovements.staffId,
+        staffCode: staff.code,
+        staffName: staff.name,
+        confirmation: stockMovements.confirmation,
         reason: stockMovements.reason,
         createdByName: users.displayName,
         createdAt: stockMovements.createdAt
@@ -416,6 +458,7 @@ export class InventoryService {
       .innerJoin(items, eq(items.id, stockMovements.itemId))
       .innerJoin(locations, eq(locations.id, stockMovements.locationId))
       .innerJoin(users, eq(users.id, stockMovements.createdBy))
+      .leftJoin(staff, eq(staff.id, stockMovements.staffId))
       .where(conditions.length ? and(...conditions) : undefined)
       .orderBy(desc(stockMovements.id))
       .limit(query.limit ?? 100)
@@ -462,7 +505,7 @@ export class InventoryService {
   }
 
   movementsCsv(): string {
-    const header = ['Date', 'SKU', 'Item', 'Type', 'Quantity', 'Unit', 'Location', 'Issued to', 'Reason', 'Unit cost (USD)', 'Recorded by']
+    const header = ['Date', 'SKU', 'Item', 'Type', 'Quantity', 'Unit', 'Location', 'Issued to', 'Staff ID', 'Confirmed by recipient', 'Reason', 'Unit cost (USD)', 'Recorded by']
     const rows = this.listMovements({ limit: Number.MAX_SAFE_INTEGER }).map((m) => [
       new Date(m.createdAt).toISOString(),
       m.sku,
@@ -472,6 +515,8 @@ export class InventoryService {
       m.unit,
       m.locationName,
       m.issuedTo,
+      m.staffCode,
+      m.confirmation === 'pin' ? 'PIN' : null,
       m.reason,
       m.unitCostCents === null ? null : m.unitCostCents / 100,
       m.createdByName

@@ -1,7 +1,8 @@
 import { useState, type KeyboardEvent, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Package, Search } from 'lucide-react'
-import type { ItemSummary, MovementType } from '@shared/inventory'
+import { Link } from 'react-router-dom'
+import { Package, Search, ShieldCheck } from 'lucide-react'
+import type { ItemSummary, Movement, MovementType } from '@shared/inventory'
 import { Badge } from '@renderer/components/ui/badge'
 import { Button } from '@renderer/components/ui/button'
 import { Dialog } from '@renderer/components/ui/dialog'
@@ -34,6 +35,34 @@ const TYPE_TONE: Record<MovementType, 'green' | 'red' | 'amber' | 'blue'> = {
 export function MovementBadge({ type }: { type: MovementType }) {
   const { t } = useTranslation()
   return <Badge tone={TYPE_TONE[type]}>{t(`stock.types.${type}`)}</Badge>
+}
+
+/** Who received a stock-out (linked to the staff record, with the PIN confirmation) and any note. */
+export function MovementDetails({ movement: m, showAuthor = false }: { movement: Movement; showAuthor?: boolean }) {
+  const { t } = useTranslation()
+  const note = m.reason ? <span className="text-muted-foreground">{m.reason}</span> : null
+  return (
+    <div className="min-w-0">
+      {m.staffId ? (
+        <div className="flex min-w-0 items-center gap-1.5">
+          <Link to={`/staff/${m.staffId}`} className="truncate font-medium text-foreground hover:underline" onClick={(e) => e.stopPropagation()}>
+            {m.staffName}
+          </Link>
+          {m.confirmation === 'pin' ? (
+            <span title={t('stock.confirm.confirmedTitle')} className="inline-flex shrink-0 items-center gap-0.5 rounded-full bg-ci-green/15 px-1.5 py-px text-[11px] font-medium text-[#2f7a2a] dark:text-ci-green">
+              <ShieldCheck className="size-3" aria-hidden="true" />
+              {t('stock.confirm.badge')}
+            </span>
+          ) : null}
+        </div>
+      ) : m.issuedTo ? (
+        <div className="truncate">{m.issuedTo}</div>
+      ) : null}
+      {note ? <div className="truncate text-xs">{note}</div> : null}
+      {!m.staffId && !m.issuedTo && !m.reason && !showAuthor ? <span className="text-muted-foreground">—</span> : null}
+      {showAuthor ? <div className="truncate text-xs text-muted-foreground">{t('stock.recordedBy', { name: m.createdByName })}</div> : null}
+    </div>
+  )
 }
 
 export function SignedQuantity({ value, unit }: { value: number; unit: string }) {
@@ -83,8 +112,12 @@ export function ItemPicker({ id, value, onChange }: { id: string; value: number 
     )
   }
 
+  // A label scan arrives as "CIINV:SKU" (see labelPayload) followed by Enter.
+  const scanned = /^CIINV:(.+)$/i.exec(query.trim())?.[1]?.trim().toUpperCase()
   const q = query.trim().toLowerCase()
-  const matches = (q ? items.filter((i) => [i.sku, i.nameEn, i.nameKm].some((v) => v?.toLowerCase().includes(q))) : items).slice(0, 50)
+  const matches = scanned
+    ? items.filter((i) => i.sku === scanned)
+    : (q ? items.filter((i) => [i.sku, i.nameEn, i.nameKm].some((v) => v?.toLowerCase().includes(q))) : items).slice(0, 50)
   const current = Math.min(active, Math.max(matches.length - 1, 0))
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {

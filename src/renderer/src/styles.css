@@ -169,6 +169,15 @@
     inset: 0 auto auto 0;
     width: 100%;
   }
+  .print-area.badges {
+    grid-template-columns: repeat(2, 85.6mm);
+  }
+  .print-area .badge-card {
+    width: 85.6mm;
+    max-width: none;
+    break-inside: avoid;
+    border-color: #999;
+  }
   .print-area .label-card {
     break-inside: avoid;
     border-color: #999;

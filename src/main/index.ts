@@ -10,6 +10,7 @@ import { registerInventoryHandlers } from './ipc/inventory-handlers'
 import { InventoryService } from './services/inventory'
 import { registerAdminHandlers } from './ipc/admin-handlers'
 import { UserAdminService } from './services/users'
+import { StaffService } from './services/staff'
 import { getAppSettings } from './services/app-settings'
 import { initLogger, log, logFilePath } from './logger'
 import { startUpdater } from './updater'
@@ -132,7 +133,7 @@ if (!app.requestSingleInstanceLock()) {
     setSessionResolver(() => signedInAuth.currentUser())
     registerAppHandlers()
     registerAuthHandlers(signedInAuth)
-    registerInventoryHandlers(new InventoryService(db), db)
+    registerInventoryHandlers(new InventoryService(db), new StaffService(db), db)
     registerAdminHandlers(db, signedInAuth, new UserAdminService(db))
     // Dev-only demo data for dashboard work; ignored in packaged builds.
     if (!app.isPackaged && process.env['CI_INV_DEMO_SEED'] === '1') {

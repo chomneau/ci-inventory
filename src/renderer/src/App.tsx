@@ -13,6 +13,8 @@ import { ItemDetailPage } from './features/inventory/ItemDetailPage'
 import { ItemsPage } from './features/inventory/ItemsPage'
 import { LocationsPage } from './features/inventory/LocationsPage'
 import { MovementsPage } from './features/inventory/MovementsPage'
+import { StaffDetailPage } from './features/staff/StaffDetailPage'
+import { StaffPage } from './features/staff/StaffPage'
 import { QueryProvider } from './lib/query'
 import { StepUpProvider } from './lib/step-up'
 import { useTheme } from './lib/theme'
@@ -31,6 +33,8 @@ export function App() {
                   <Route path="items" element={<ItemsPage />} />
                   <Route path="items/:id" element={<ItemDetailPage />} />
                   <Route path="stock" element={<MovementsPage />} />
+                  <Route path="staff" element={<StaffPage />} />
+                  <Route path="staff/:id" element={<StaffDetailPage />} />
                   <Route path="categories" element={<CategoriesPage />} />
                   <Route path="locations" element={<LocationsPage />} />
                   <Route path="users" element={<AdminOnly><UsersPage /></AdminOnly>} />

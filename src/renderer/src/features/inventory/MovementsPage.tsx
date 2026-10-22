@@ -12,7 +12,7 @@ import { useFormat } from '@renderer/lib/format'
 import { unwrap } from '@renderer/lib/ipc'
 import { useCanWrite, useMovementPages } from './hooks'
 import { MovementDialog, type MovementKind } from './MovementDialog'
-import { MovementBadge, SignedQuantity } from './parts'
+import { MovementBadge, MovementDetails, SignedQuantity } from './parts'
 
 const TYPES: MovementType[] = ['in', 'out', 'adjust', 'transfer_out', 'transfer_in']
 const PAGE = 100
@@ -153,7 +153,9 @@ export function MovementsPage() {
                       <SignedQuantity value={m.quantity} unit={m.unit} />
                     </Td>
                     <Td className="hidden @3xl:table-cell">{m.locationName}</Td>
-                    <Td className="hidden max-w-72 truncate text-muted-foreground @4xl:table-cell">{[m.issuedTo, m.reason].filter(Boolean).join(' · ') || '—'}</Td>
+                    <Td className="hidden max-w-72 @4xl:table-cell">
+                      <MovementDetails movement={m} />
+                    </Td>
                     <Td className="hidden text-muted-foreground @6xl:table-cell">{m.createdByName}</Td>
                   </tr>
                 ))}

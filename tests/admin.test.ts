@@ -139,7 +139,7 @@ describe('admin features', () => {
   })
 
   it('reads and updates settings with an audit entry', () => {
-    expect(getAppSettings(t.db)).toEqual({ idleLockMinutes: 10, officeName: 'CI Cambodia', backupReminderDays: 7, updatesEnabled: true, lastBackupAt: null })
+    expect(getAppSettings(t.db)).toEqual({ idleLockMinutes: 10, officeName: 'CI Cambodia', backupReminderDays: 7, updatesEnabled: true, requireStaffConfirmation: true, lastBackupAt: null })
     const next = updateAppSettings(t.db, admin, { idleLockMinutes: 15, officeName: 'CI Cambodia — Phnom Penh' })
     expect(next).toMatchObject({ idleLockMinutes: 15, officeName: 'CI Cambodia — Phnom Penh' })
     expect(listAudit(t.db, { search: 'settings.update' })[0]?.details).toMatchObject({ idleLockMinutes: { from: 10, to: 15 } })

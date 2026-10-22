@@ -35,6 +35,14 @@ export const Channels = {
   itemsPhoto: 'items:photo',
   itemsLabel: 'items:label',
 
+  staffList: 'staff:list',
+  staffGet: 'staff:get',
+  staffCreate: 'staff:create',
+  staffUpdate: 'staff:update',
+  staffSetArchived: 'staff:set-archived',
+  staffSetPin: 'staff:set-pin',
+  staffBadge: 'staff:badge',
+
   stockRecord: 'stock:record',
   stockList: 'stock:list',
   dashboardSummary: 'dashboard:summary',
