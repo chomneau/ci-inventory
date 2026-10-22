@@ -59,6 +59,34 @@ describe('AuthService', () => {
     await expectCode(auth.setupAdmin({ ...ADMIN, email: 'second@ci.org' }), 'SETUP_ALREADY_DONE')
   })
 
+  it('explains a wrong clock instead of just refusing the code (enrollment and sign-in)', async () => {
+    await auth.setupAdmin(ADMIN)
+    secret = (await auth.beginEnrollment()).manualKey.replace(/ /g, '')
+    // The PC clock is 4 minutes behind the phone: the phone's code is for 8 steps ahead.
+    await expectCode(() => auth.confirmEnrollment({ code: currentCode(8) }), 'CLOCK_SKEW')
+    await expect(Promise.resolve().then(() => auth.confirmEnrollment({ code: currentCode(-8) }))).rejects.toMatchObject({ details: { count: 4 } })
+    // A code that matches no nearby time is still just wrong; one step of drift is still accepted.
+    await expectCode(() => auth.confirmEnrollment({ code: currentCode(400) === '000000' ? '111111' : '000000' }), 'INVALID_CODE')
+    auth.confirmEnrollment({ code: currentCode(1) })
+    auth.acknowledgeRecoveryCodes()
+
+    auth.logout()
+    c.advance(120_000)
+    await auth.login({ email: ADMIN.email, password: ADMIN.password })
+    await expectCode(() => auth.verifyTotp({ code: currentCode(-10) }), 'CLOCK_SKEW')
+    // Diagnosed or not, it is still a failed attempt that counts towards the lockout.
+    const row = t.db.select().from(users).get()!
+    expect(row.failedLoginCount).toBe(1)
+    expect(auth.status().stage).toBe('totp_required')
+  })
+
+  it('names the authenticator entry after this computer', async () => {
+    auth = new AuthService({ db: t.db, totpKey: randomBytes(32), now: c.now, deviceName: 'OFFICE-PC' })
+    await auth.setupAdmin(ADMIN)
+    const enrollment = await auth.beginEnrollment()
+    expect(enrollment.account).toBe('admin@ci.org (OFFICE-PC)')
+  })
+
   it('rejects a weak admin password', async () => {
     await expectCode(auth.setupAdmin({ ...ADMIN, password: 'password123' }), 'WEAK_PASSWORD')
   })

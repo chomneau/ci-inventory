@@ -46,6 +46,26 @@ export function verifyTotp(secretBase32: string, code: string, now: Date, lastUs
   return matched
 }
 
+/**
+ * Diagnostics only — never used to accept a code. When a code is refused, reports how many
+ * 30-second steps away it would have matched (2..maxSteps either way), which means the
+ * computer's or the phone's clock is wrong. Null when the code doesn't match nearby times.
+ */
+export function clockOffsetSteps(secretBase32: string, code: string, now: Date, maxSteps = 20): number | null {
+  if (!/^\d{6}$/.test(code)) return null
+  const secret = base32Decode(secretBase32)
+  const current = timeStep(now)
+  for (let d = DRIFT_STEPS + 1; d <= maxSteps; d++) {
+    for (const offset of [d, -d]) if (hotp(secret, current + offset) === code) return offset
+  }
+  return null
+}
+
+/** Minutes for a CLOCK_SKEW message. */
+export function offsetMinutes(steps: number): number {
+  return Math.max(1, Math.round((Math.abs(steps) * TOTP_PERIOD_SECONDS) / 60))
+}
+
 export function otpauthUri(secretBase32: string, issuer: string, account: string): string {
   const label = encodeURIComponent(`${issuer}:${account}`)
   const params = new URLSearchParams({

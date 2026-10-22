@@ -10,7 +10,7 @@ import { lockoutUntil } from './lockout'
 import { hashPassword, verifyAgainstDummy, verifyPassword } from './password'
 import { generateRecoveryCodes, hashRecoveryCode } from './recovery-codes'
 import { openSecret, sealSecret } from './secret-box'
-import { formatManualKey, generateTotpSecret, otpauthUri, verifyTotp } from './totp'
+import { clockOffsetSteps, formatManualKey, generateTotpSecret, offsetMinutes, otpauthUri, verifyTotp } from './totp'
 
 type PendingStage = 'totp_required' | 'enrollment_required' | 'recovery_codes' | 'password_change_required'
 
@@ -34,6 +34,11 @@ export interface AuthServiceOptions {
   /** 32-byte key used to seal TOTP secrets at rest. */
   totpKey: Buffer
   issuer?: string
+  /**
+   * This computer's name, added to the authenticator entry ("sokha@ci.org (OFFICE-PC)") so
+   * installs on different computers don't show up as identical entries on the phone.
+   */
+  deviceName?: string
   now?: () => Date
   onChange?: (status: AuthStatus) => void
 }
@@ -51,6 +56,7 @@ export class AuthService {
   private readonly db: Db
   private readonly totpKey: Buffer
   private readonly issuer: string
+  private readonly deviceName: string | null
   private readonly now: () => Date
   private readonly onChange?: (status: AuthStatus) => void
   /** Serializes password checks so parallel attempts cannot all slip past the lockout check. */
@@ -60,6 +66,7 @@ export class AuthService {
     this.db = opts.db
     this.totpKey = opts.totpKey
     this.issuer = opts.issuer ?? 'CI Inventory'
+    this.deviceName = opts.deviceName?.trim() || null
     this.now = opts.now ?? (() => new Date())
     this.onChange = opts.onChange
   }
@@ -166,7 +173,7 @@ export class AuthService {
 
     const secret = openSecret(this.totpKey, row.secretEncrypted, totpContext(pending.userId))
     const step = verifyTotp(secret, input.code, this.now(), row.lastUsedStep)
-    if (step === null) this.failSecondFactor(pending, 'bad_totp')
+    if (step === null) this.failSecondFactor(pending, 'bad_totp', clockOffsetSteps(secret, input.code, this.now()))
 
     this.db.update(userTotp).set({ lastUsedStep: step }).where(eq(userTotp.userId, pending.userId)).run()
     return this.afterSecondFactor(pending.userId, 'totp')
@@ -208,9 +215,10 @@ export class AuthService {
       .onConflictDoUpdate({ target: userTotp.userId, set: { secretEncrypted: sealed, enabledAt: null, lastUsedStep: null } })
       .run()
 
-    const uri = otpauthUri(secret, this.issuer, pending.email)
+    const account = this.deviceName ? `${pending.email} (${this.deviceName})` : pending.email
+    const uri = otpauthUri(secret, this.issuer, account)
     const qrDataUrl = await QRCode.toDataURL(uri, { errorCorrectionLevel: 'M', margin: 1, width: 240 })
-    return { qrDataUrl, manualKey: formatManualKey(secret), issuer: this.issuer, account: pending.email }
+    return { qrDataUrl, manualKey: formatManualKey(secret), issuer: this.issuer, account }
   }
 
   confirmEnrollment(input: { code: string }): { status: AuthStatus; recoveryCodes: string[] } {
@@ -223,6 +231,8 @@ export class AuthService {
     if (step === null) {
       // Usually a scanning mistake rather than an attack: count per stage, not against the account.
       this.countStageAttempt(pending)
+      const offset = clockOffsetSteps(secret, input.code, this.now())
+      if (offset !== null) throw new AppError('CLOCK_SKEW', { count: offsetMinutes(offset) })
       throw new AppError('INVALID_CODE')
     }
 
@@ -434,7 +444,8 @@ export class AuthService {
   }
 
   /** A wrong second factor counts against the account (the password was already right). */
-  private failSecondFactor(pending: Extract<State, { attempts: number; userId: number }>, reason: string): never {
+  /** `clockOffset`: set when the code was right for another time, so the message can point at the clock. */
+  private failSecondFactor(pending: Extract<State, { attempts: number; userId: number }>, reason: string, clockOffset: number | null = null): never {
     const now = this.now()
     const lockedUntil = this.registerFailure(pending.userId, reason)
     if (lockedUntil) {
@@ -442,6 +453,7 @@ export class AuthService {
       throw lockedError(lockedUntil, now)
     }
     this.countStageAttempt(pending)
+    if (clockOffset !== null) throw new AppError('CLOCK_SKEW', { count: offsetMinutes(clockOffset) })
     throw new AppError('INVALID_CODE')
   }
 

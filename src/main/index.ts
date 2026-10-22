@@ -1,3 +1,4 @@
+import { hostname } from 'node:os'
 import { join } from 'node:path'
 import { app, BrowserWindow, dialog, session } from 'electron'
 import { APP_ENTRY_URL, isTrustedRendererUrl } from './security/origin'
@@ -120,6 +121,9 @@ if (!app.requestSingleInstanceLock()) {
     auth = new AuthService({
       db,
       totpKey: getSubkey('totp-secrets'),
+      deviceName: hostname()
+        .replace(/\.(local|lan|home|localdomain)$/i, '')
+        .slice(0, 30),
       onChange: (status) => mainWindow?.webContents.send(Events.authStatusChanged, status)
     })
     const signedInAuth = auth

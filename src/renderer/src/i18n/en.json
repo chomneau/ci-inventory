@@ -141,7 +141,9 @@
       "qrAlt": "QR code for your authenticator app",
       "manual": "Can't scan? Enter this key in the app instead:",
       "step3": "Enter the 6-digit code the app shows",
-      "submit": "Confirm and continue"
+      "submit": "Confirm and continue",
+      "appearsAs": "In your authenticator app this appears as",
+      "troubleshoot": "Code not accepted? Use the entry named above (not one from another computer), and check that this computer’s date and time are set automatically."
     },
     "recovery": {
       "title": "Save your recovery codes",
@@ -208,7 +210,9 @@
     "PIN_LOCKED_one": "Too many wrong PINs. Try again in {{count}} minute, or set a new PIN.",
     "PIN_LOCKED_other": "Too many wrong PINs. Try again in {{count}} minutes, or set a new PIN.",
     "STAFF_ARCHIVED": "This staff member is archived.",
-    "STAFF_CONFIRMATION_REQUIRED": "Choose the staff member receiving the items and have them confirm with their PIN."
+    "STAFF_CONFIRMATION_REQUIRED": "Choose the staff member receiving the items and have them confirm with their PIN.",
+    "CLOCK_SKEW_one": "That code is right, but the clock on this computer or your phone is about {{count}} minute off. Turn on “Set time automatically” (Windows: Settings › Time & language) and try again.",
+    "CLOCK_SKEW_other": "That code is right, but the clock on this computer or your phone is about {{count}} minutes off. Turn on “Set time automatically” (Windows: Settings › Time & language) and try again."
   },
   "items": {
     "subtitle": "Every item, its stock on hand and where it is kept.",

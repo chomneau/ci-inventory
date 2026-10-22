@@ -88,6 +88,11 @@ export function EnrollScreen({ email }: { email: string }) {
               </div>
             </div>
           ) : null}
+          {enrollment ? (
+            <p className="rounded-md bg-muted/60 px-2.5 py-2 text-xs text-muted-foreground">
+              {t('auth.enroll.appearsAs')} <span className="font-medium text-foreground">{`${enrollment.issuer}: ${enrollment.account}`}</span>
+            </p>
+          ) : null}
         </Step>
         <Step n={3} title={t('auth.enroll.step3')}>
           <form onSubmit={onSubmit} className="space-y-3">
@@ -96,6 +101,7 @@ export function EnrollScreen({ email }: { email: string }) {
             <Button type="submit" className="w-full" disabled={!enrollment || pending || code.length !== 6}>
               {t('auth.enroll.submit')}
             </Button>
+            <p className="text-xs text-muted-foreground">{t('auth.enroll.troubleshoot')}</p>
           </form>
         </Step>
       </ol>
