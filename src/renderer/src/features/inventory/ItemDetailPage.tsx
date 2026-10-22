@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router-dom'
 import {
@@ -18,7 +18,9 @@ import { toast } from 'sonner'
 import { Badge } from '@renderer/components/ui/badge'
 import { Button } from '@renderer/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@renderer/components/ui/card'
-import { EmptyState, Table, Td, Th } from '@renderer/components/ui/page'
+import { EmptyState, Page, Table, Td, Th } from '@renderer/components/ui/page'
+import { ChartCard, DataTable } from '@renderer/components/charts/ChartCard'
+import { LineChart } from '@renderer/components/charts/LineChart'
 import { useFormat } from '@renderer/lib/format'
 import { unwrap, useErrorText } from '@renderer/lib/ipc'
 import { useCanWrite, useItem, useMovements, usePhoto } from './hooks'
@@ -35,7 +37,30 @@ export function ItemDetailPage() {
   const id = Number(useParams().id)
   const { data: item, error } = useItem(id)
   const { data: photo } = usePhoto(id, 'image', Boolean(item?.hasPhoto))
-  const { data: movements = [] } = useMovements({ itemId: id, limit: 200 })
+  const { data: movements = [] } = useMovements({ itemId: id, limit: 500 })
+  const { i18n } = useTranslation()
+  // Stock level at the end of each of the last 90 days, walked back from today's level.
+  const trend = useMemo(() => {
+    if (!item) return null
+    const DAY = 86_400_000
+    const end = new Date()
+    end.setHours(24, 0, 0, 0)
+    const days = 90
+    const deltas = new Array<number>(days).fill(0)
+    for (const m of movements) {
+      const idx = days - 1 - Math.floor((end.getTime() - 1 - m.createdAt) / DAY)
+      if (idx >= 0 && idx < days) deltas[idx]! += m.quantity
+    }
+    const values = new Array<number>(days)
+    let level = item.onHand
+    for (let i = days - 1; i >= 0; i--) {
+      values[i] = level
+      level -= deltas[i]!
+    }
+    const fmt = new Intl.DateTimeFormat(i18n.language === 'km' ? 'km-KH' : 'en-US', { day: 'numeric', month: 'short' })
+    const labels = values.map((_, i) => fmt.format(new Date(end.getTime() - (days - i) * DAY)))
+    return { values, labels }
+  }, [item, movements, i18n.language])
   const [movement, setMovement] = useState<MovementKind | null>(null)
   const [editing, setEditing] = useState(false)
   const [labels, setLabels] = useState(false)
@@ -57,13 +82,13 @@ export function ItemDetailPage() {
   ]
 
   return (
-    <div className="mx-auto w-full max-w-[1400px] space-y-5">
+    <Page>
       <Link to="/items" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
         <ArrowLeft className="size-4" />
         {t('items.backToList')}
       </Link>
 
-      <div className="flex flex-wrap gap-6 rounded-2xl border bg-card p-6">
+      <div className="flex flex-wrap gap-6 rounded-2xl border bg-card p-6 shadow-xs">
         <div className="relative">
           {photo ? <img src={photo} alt="" className="size-36 rounded-xl border object-cover" /> : <ItemThumb item={item} className="size-36 [&_svg]:size-10" />}
           {canWrite ? (
@@ -95,7 +120,7 @@ export function ItemDetailPage() {
             {item.categoryNameEn ? name({ nameEn: item.categoryNameEn, nameKm: item.categoryNameKm }) : t('items.uncategorised')}
             {item.defaultLocationName ? ` · ${item.defaultLocationName}` : ''}
           </div>
-          <dl className="grid grid-cols-2 gap-4 pt-2 sm:grid-cols-4">
+          <dl className="grid grid-cols-2 gap-4 pt-2 @4xl:grid-cols-4">
             {[
               [t('items.fields.onHand'), `${number(item.onHand)} ${item.unit}`],
               [t('items.fields.minStock'), number(item.minStock)],
@@ -146,7 +171,25 @@ export function ItemDetailPage() {
         </div>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-[1fr_2fr]">
+      {trend ? (
+        <ChartCard
+          title={t('items.trendTitle')}
+          subtitle={t('items.trendSubtitle', { unit: item.unit })}
+          table={<DataTable head={[t('stock.fields.date'), t('items.fields.onHand')]} rows={trend.values.map((v, i) => [trend.labels[i]!, `${number(v)} ${item.unit}`])} />}
+        >
+          <LineChart
+            ariaLabel={t('items.trendTitle')}
+            labels={trend.labels}
+            area
+            height={160}
+            formatValue={(v) => `${number(v)} ${item.unit}`}
+            formatTick={(v) => number(v)}
+            series={[{ key: 'level', label: t('items.fields.onHand'), color: 'var(--series-1)', values: trend.values }]}
+          />
+        </ChartCard>
+      ) : null}
+
+      <div className="grid gap-5 @5xl:grid-cols-[1fr_2fr]">
         <Card>
           <CardHeader>
             <CardTitle>{t('items.byLocation')}</CardTitle>
@@ -155,13 +198,21 @@ export function ItemDetailPage() {
             {item.stockByLocation.length === 0 ? (
               <p className="text-sm text-muted-foreground">{t('items.noStock')}</p>
             ) : (
-              <ul className="divide-y">
+              <ul className="space-y-3">
                 {item.stockByLocation.map((s) => (
-                  <li key={s.locationId} className="flex justify-between py-2 text-sm">
-                    <span>{s.locationName}</span>
-                    <span className="font-medium tabular-nums">
-                      {number(s.quantity)} <span className="font-normal text-muted-foreground">{item.unit}</span>
-                    </span>
+                  <li key={s.locationId} className="text-sm">
+                    <div className="flex justify-between">
+                      <span>{s.locationName}</span>
+                      <span className="font-medium tabular-nums">
+                        {number(s.quantity)} <span className="font-normal text-muted-foreground">{item.unit}</span>
+                      </span>
+                    </div>
+                    <div className="mt-1.5 h-2 w-full rounded-full bg-muted">
+                      <div
+                        className="h-full rounded-full bg-[var(--series-1)]"
+                        style={{ width: `${item.onHand > 0 ? Math.max((Math.max(s.quantity, 0) / item.onHand) * 100, 2) : 0}%` }}
+                      />
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -183,8 +234,8 @@ export function ItemDetailPage() {
                     <Th>{t('stock.fields.date')}</Th>
                     <Th>{t('stock.fields.type')}</Th>
                     <Th className="text-right">{t('stock.fields.quantity')}</Th>
-                    <Th>{t('stock.fields.location')}</Th>
-                    <Th>{t('stock.fields.details')}</Th>
+                    <Th className="hidden @3xl:table-cell">{t('stock.fields.location')}</Th>
+                    <Th className="hidden @6xl:table-cell">{t('stock.fields.details')}</Th>
                   </tr>
                 </thead>
                 <tbody>
@@ -197,8 +248,8 @@ export function ItemDetailPage() {
                       <Td className="text-right">
                         <SignedQuantity value={m.quantity} unit={m.unit} />
                       </Td>
-                      <Td>{m.locationName}</Td>
-                      <Td className="text-muted-foreground">
+                      <Td className="hidden @3xl:table-cell">{m.locationName}</Td>
+                      <Td className="hidden text-muted-foreground @6xl:table-cell">
                         {[m.issuedTo, m.reason].filter(Boolean).join(' · ') || '—'}
                         <div className="text-xs">{m.createdByName}</div>
                       </Td>
@@ -222,6 +273,6 @@ export function ItemDetailPage() {
         confirmLabel={t('items.archive')}
         onConfirm={() => unwrap(window.ci.items.setArchived({ id, archived: true }))}
       />
-    </div>
+    </Page>
   )
 }

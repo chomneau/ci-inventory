@@ -10,7 +10,7 @@ import { Button } from '@renderer/components/ui/button'
 import { Dialog } from '@renderer/components/ui/dialog'
 import { Field } from '@renderer/components/ui/field'
 import { Input } from '@renderer/components/ui/input'
-import { EmptyState, PageHeader, Table, Td, Th } from '@renderer/components/ui/page'
+import { EmptyState, Page, PageHeader, Table, Td, Th } from '@renderer/components/ui/page'
 import { Select } from '@renderer/components/ui/select'
 import { useCurrentUser } from '@renderer/features/auth/AuthProvider'
 import { initials } from '@renderer/features/auth/initials'
@@ -130,8 +130,9 @@ export function UsersPage() {
       .catch(() => undefined)
 
   return (
-    <div className="mx-auto w-full max-w-[1400px] space-y-5">
+    <Page>
       <PageHeader
+        icon={Users}
         title={t('nav.users')}
         description={t('users.subtitle')}
         actions={
@@ -150,7 +151,7 @@ export function UsersPage() {
               <Th>{t('users.user')}</Th>
               <Th>{t('users.role')}</Th>
               <Th>{t('users.status')}</Th>
-              <Th>{t('users.lastSignIn')}</Th>
+              <Th className="hidden @4xl:table-cell">{t('users.lastSignIn')}</Th>
               <Th className="w-56" />
             </tr>
           </thead>
@@ -186,7 +187,7 @@ export function UsersPage() {
                       ) : null}
                     </div>
                   </Td>
-                  <Td className="whitespace-nowrap text-muted-foreground">{u.lastLoginAt ? dateTime(u.lastLoginAt) : t('users.never')}</Td>
+                  <Td className="hidden whitespace-nowrap text-muted-foreground @4xl:table-cell">{u.lastLoginAt ? dateTime(u.lastLoginAt) : t('users.never')}</Td>
                   <Td className="text-right">
                     <Button size="icon" variant="ghost" title={t('common.edit')} aria-label={t('common.edit')} onClick={() => setEditing(u)}>
                       <Pencil />
@@ -241,6 +242,6 @@ export function UsersPage() {
         confirmLabel={confirm ? t(`users.confirm.${confirm.kind}.action`) : ''}
         onConfirm={() => act(confirm!)}
       />
-    </div>
+    </Page>
   )
 }

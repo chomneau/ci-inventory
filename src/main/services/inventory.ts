@@ -64,7 +64,10 @@ export class InventoryService {
         id: categories.id,
         nameEn: categories.nameEn,
         nameKm: categories.nameKm,
-        itemCount: sql<number>`(select count(*) from ${items} where ${items.categoryId} = ${categories.id} and ${items.archivedAt} is null)`
+        itemCount: sql<number>`(select count(*) from items i where i.category_id = "categories"."id" and i.archived_at is null)`,
+        valueCents: sql<number>`(select coalesce(sum(max(s.q, 0) * i.unit_cost_cents), 0) from items i
+          join (select item_id, sum(quantity) q from stock_movements group by item_id) s on s.item_id = i.id
+          where i.category_id = "categories"."id" and i.archived_at is null)`
       })
       .from(categories)
       .orderBy(asc(categories.nameEn))
@@ -76,7 +79,7 @@ export class InventoryService {
       this.db.transaction((tx) => {
         const row = tx.insert(categories).values({ nameEn: input.nameEn, nameKm: input.nameKm ?? null }).returning().get()
         recordAudit(tx, { actorUserId: actor.id, action: 'category.create', entityType: 'category', entityId: row.id, details: { ...input } })
-        return { id: row.id, nameEn: row.nameEn, nameKm: row.nameKm, itemCount: 0 }
+        return { id: row.id, nameEn: row.nameEn, nameKm: row.nameKm, itemCount: 0, valueCents: 0 }
       })
     )
   }
@@ -121,7 +124,12 @@ export class InventoryService {
         name: locations.name,
         description: locations.description,
         archivedAt: locations.archivedAt,
-        itemCount: sql<number>`(select count(*) from (select ${stockMovements.itemId} from ${stockMovements} where ${stockMovements.locationId} = ${locations.id} group by ${stockMovements.itemId} having sum(${stockMovements.quantity}) <> 0))`
+        // Correlated subqueries name the outer table explicitly: inside a nested select,
+        // drizzle's unqualified column would resolve to the inner table instead.
+        itemCount: sql<number>`(select count(*) from (select item_id from stock_movements where location_id = "locations"."id" group by item_id having sum(quantity) <> 0))`,
+        valueCents: sql<number>`(select coalesce(sum(max(s.q, 0) * i.unit_cost_cents), 0) from items i
+          join (select item_id, sum(quantity) q from stock_movements where location_id = "locations"."id" group by item_id) s on s.item_id = i.id
+          where i.archived_at is null)`
       })
       .from(locations)
       .where(includeArchived ? undefined : isNull(locations.archivedAt))
@@ -135,7 +143,7 @@ export class InventoryService {
       this.db.transaction((tx) => {
         const row = tx.insert(locations).values({ name: input.name, description: input.description ?? null }).returning().get()
         recordAudit(tx, { actorUserId: actor.id, action: 'location.create', entityType: 'location', entityId: row.id, details: { ...input } })
-        return { id: row.id, name: row.name, description: row.description, archived: false, itemCount: 0 }
+        return { id: row.id, name: row.name, description: row.description, archived: false, itemCount: 0, valueCents: 0 }
       })
     )
   }
@@ -380,6 +388,12 @@ export class InventoryService {
     const conditions: SQL[] = []
     if (query.itemId) conditions.push(eq(stockMovements.itemId, query.itemId))
     if (query.type) conditions.push(eq(stockMovements.type, query.type))
+    const q = query.search?.trim().toLowerCase()
+    if (q) {
+      // instr() rather than LIKE, so % and _ in the search are literal characters.
+      const cols = [items.sku, items.nameEn, items.nameKm, locations.name, stockMovements.issuedTo, stockMovements.reason, users.displayName]
+      conditions.push(sql`(${sql.join(cols.map((c) => sql`instr(lower(coalesce(${c}, '')), ${q}) > 0`), sql` or `)})`)
+    }
     const rows = this.db
       .select({
         id: stockMovements.id,
@@ -484,7 +498,7 @@ export class InventoryService {
         categoryNameKm: categories.nameKm,
         defaultLocationName: locations.name,
         onHand: sql<number>`coalesce(${stock.onHand}, 0)`,
-        hasPhoto: sql<number>`exists(select 1 from ${itemPhotos} where ${itemPhotos.itemId} = ${items.id})`
+        hasPhoto: sql<number>`exists(select 1 from item_photos p where p.item_id = "items"."id")`
       })
       .from(items)
       .leftJoin(categories, eq(categories.id, items.categoryId))

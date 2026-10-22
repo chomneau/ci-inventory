@@ -16,7 +16,8 @@
     "settings": "Settings",
     "audit": "Audit log",
     "expand": "Expand sidebar",
-    "collapse": "Collapse sidebar"
+    "collapse": "Collapse sidebar",
+    "breadcrumbs": "Breadcrumbs"
   },
   "dashboard": {
     "welcome": "Welcome to CI Inventory",
@@ -58,8 +59,10 @@
     },
     "sections": {
       "security": "Your security",
-      "admin": "Administration"
-    }
+      "admin": "Administration",
+      "general": "General"
+    },
+    "subtitle": "Preferences for this computer, your account security and administration."
   },
   "topbar": {
     "toggleTheme": "Toggle theme",
@@ -246,7 +249,16 @@
       "opening": "Opening quantity",
       "onHand": "On hand",
       "value": "Stock value"
-    }
+    },
+    "out": "Out",
+    "summary": {
+      "count": "Active items",
+      "value": "Stock value",
+      "low": "Low stock",
+      "out": "Out of stock"
+    },
+    "trendTitle": "Stock over time",
+    "trendSubtitle": "End-of-day stock on hand ({{unit}}), last 90 days"
   },
   "stock": {
     "subtitle": "Every receipt, issue, transfer and count — append-only and audited.",
@@ -289,8 +301,16 @@
       "date": "Date",
       "type": "Type",
       "details": "Details",
-      "by": "By"
-    }
+      "by": "By",
+      "time": "Time"
+    },
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "searchPlaceholder": "Search item, SKU, person or note…",
+    "noMatches": "No movements match your search",
+    "loadMore": "Load more",
+    "count_one": "{{count}} movement",
+    "count_other": "{{count}} movements"
   },
   "categories": {
     "subtitle": "Group items, e.g. stationery, cleaning, IT accessories.",
@@ -577,5 +597,17 @@
     "reorderBudgetHint_one": "to restock {{count}} item to twice its minimum",
     "reorderBudgetHint_other": "to restock {{count}} items to twice their minimum",
     "viewLowItems": "View low-stock items"
+  },
+  "palette": {
+    "title": "Search",
+    "open": "Search (Ctrl+K)",
+    "search": "Search…",
+    "placeholder": "Search items, pages and actions…",
+    "noResults": "Nothing found.",
+    "groups": {
+      "actions": "Actions",
+      "pages": "Go to",
+      "items": "Items"
+    }
   }
 }

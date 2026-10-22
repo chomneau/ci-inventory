@@ -45,13 +45,22 @@ export function seedDemoData(db: Db, now = new Date()): boolean {
     ['WATER', 'Drinking water 20L', 'ទឹកសុទ្ធ 20L', kitchen, 'bottle', 6, 150, 40]
   ]
   const recipients = ['Finance', 'Programs', 'HR', 'Administration', 'Field team', 'Communications']
-  const start = now.getTime() - 89 * DAY
+  const midnight = new Date(now)
+  midnight.setHours(0, 0, 0, 0)
+  const start = midnight.getTime() - 89 * DAY
+  // Movements are collected first and inserted in time order, so ledger ids are chronological like real data.
+  const pending: (typeof stockMovements.$inferInsert)[] = []
 
   db.transaction((tx) => {
     for (const [sku, nameEn, nameKm, categoryId, unit, minStock, unitCostCents, opening] of catalog) {
       const itemId = tx.insert(items).values({ sku, nameEn, nameKm, categoryId, unit, minStock, unitCostCents, defaultLocationId: main }).returning().get().id
-      const mv = (daysAgoFromStart: number, values: Omit<typeof stockMovements.$inferInsert, 'itemId' | 'createdBy' | 'createdAt'>) =>
-        tx.insert(stockMovements).values({ ...values, itemId, createdBy: admin.id, createdAt: new Date(start + daysAgoFromStart * DAY + 9 * 3_600_000) }).run()
+      // Office hours 08:00–16:45, spread per item and day without consuming rand() (keeps the demo numbers stable);
+      // never in the future when seeding early in the morning.
+      const mv = (d: number, values: Omit<typeof stockMovements.$inferInsert, 'itemId' | 'createdBy' | 'createdAt'>) => {
+        const minutes = 8 * 60 + ((itemId * 97 + d * 41) % 36) * 15
+        const at = Math.min(start + d * DAY + minutes * 60_000, now.getTime() - 60_000)
+        pending.push({ ...values, itemId, createdBy: admin.id, createdAt: new Date(at) })
+      }
       let stock = opening
       mv(0, { type: 'in', locationId: main, quantity: opening, unitCostCents, reason: 'Opening stock' })
       const dailyUse = opening / 70
@@ -81,6 +90,8 @@ export function seedDemoData(db: Db, now = new Date()): boolean {
         }
       }
     }
+    pending.sort((a, b) => a.createdAt!.getTime() - b.createdAt!.getTime()) // stable: transfer pairs stay together
+    for (const m of pending) tx.insert(stockMovements).values(m).run()
   })
   return true
 }

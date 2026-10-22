@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import type { Movement } from '@shared/inventory'
 import { unwrap } from '@renderer/lib/ipc'
 import { useCurrentUser } from '@renderer/features/auth/AuthProvider'
@@ -37,8 +37,20 @@ export function usePhoto(id: number, variant: 'image' | 'thumbnail', enabled: bo
   })
 }
 
-export function useMovements(q: { itemId?: number | null; type?: Movement['type']; limit?: number } = {}) {
-  return useQuery({ queryKey: keys.movements(q), queryFn: () => unwrap(window.ci.stock.list(q)) })
+export function useMovements(q: { itemId?: number | null; type?: Movement['type']; search?: string; limit?: number } = {}) {
+  // Keep showing the previous rows while a new search / page loads, so the table doesn't flash empty.
+  return useQuery({ queryKey: keys.movements(q), queryFn: () => unwrap(window.ci.stock.list(q)), placeholderData: keepPreviousData })
+}
+
+/** Paged ledger for the movements screen: each page is fetched with an offset, so history of any length loads. */
+export function useMovementPages(q: { type?: Movement['type']; search?: string }, pageSize: number) {
+  return useInfiniteQuery({
+    queryKey: keys.movements({ ...q, paged: pageSize }),
+    queryFn: ({ pageParam }) => unwrap(window.ci.stock.list({ ...q, limit: pageSize, offset: pageParam })),
+    initialPageParam: 0,
+    getNextPageParam: (last, all) => (last.length < pageSize ? undefined : all.length * pageSize),
+    placeholderData: keepPreviousData
+  })
 }
 
 export function useDashboard() {

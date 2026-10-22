@@ -1,12 +1,12 @@
 import { useMutation } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Download, Search, ShieldAlert, ShieldCheck } from 'lucide-react'
+import { Download, ScrollText, Search, ShieldAlert, ShieldCheck } from 'lucide-react'
 import { toast } from 'sonner'
 import { Alert } from '@renderer/components/ui/alert'
 import { Button } from '@renderer/components/ui/button'
 import { Input } from '@renderer/components/ui/input'
-import { PageHeader, Table, Td, Th } from '@renderer/components/ui/page'
+import { Page, PageHeader, Table, Td, Th } from '@renderer/components/ui/page'
 import { useFormat } from '@renderer/lib/format'
 import { unwrap } from '@renderer/lib/ipc'
 import { useAudit } from './hooks'
@@ -39,8 +39,9 @@ export function AuditPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-[1600px] space-y-5">
+    <Page>
       <PageHeader
+        icon={ScrollText}
         title={t('nav.audit')}
         description={t('audit.subtitle')}
         actions={
@@ -76,30 +77,30 @@ export function AuditPage() {
       <Table>
         <thead>
           <tr>
-            <Th className="w-16">#</Th>
+            <Th className="hidden w-16 @3xl:table-cell">#</Th>
             <Th>{t('stock.fields.date')}</Th>
             <Th>{t('audit.user')}</Th>
             <Th>{t('audit.action')}</Th>
-            <Th>{t('stock.fields.details')}</Th>
+            <Th className="hidden @4xl:table-cell">{t('stock.fields.details')}</Th>
           </tr>
         </thead>
         <tbody>
           {entries.map((e) => (
             <tr key={e.id} className="hover:bg-muted/40">
-              <Td className="tabular-nums text-muted-foreground">{e.id}</Td>
+              <Td className="hidden tabular-nums text-muted-foreground @3xl:table-cell">{e.id}</Td>
               <Td className="whitespace-nowrap text-muted-foreground">{dateTime(e.at)}</Td>
               <Td>{e.actorName ?? <span className="text-muted-foreground">{t('audit.system')}</span>}</Td>
               <Td>
                 <div>{t(`audit.actions.${e.action}`, { defaultValue: e.action })}</div>
                 <div className="font-mono text-xs text-muted-foreground">{e.action}</div>
               </Td>
-              <Td className="max-w-md">
+              <Td className="hidden max-w-md @4xl:table-cell">
                 <DetailsCell details={e.details} />
               </Td>
             </tr>
           ))}
         </tbody>
       </Table>
-    </div>
+    </Page>
   )
 }

@@ -9,7 +9,6 @@ export interface LineSeries {
   values: number[]
 }
 
-const PLOT_H = 200
 const AXIS_H = 24
 const PAD = { top: 8, right: 12, left: 52 }
 
@@ -23,7 +22,9 @@ export function LineChart({
   labels,
   formatValue,
   formatTick,
-  ariaLabel
+  ariaLabel,
+  area = false,
+  height = 200
 }: {
   series: LineSeries[]
   /** One label per x position (e.g. "21 Oct"). */
@@ -31,7 +32,11 @@ export function LineChart({
   formatValue: (v: number) => string
   formatTick: (v: number) => string
   ariaLabel: string
+  /** Single series only: a 10% wash under the line. */
+  area?: boolean
+  height?: number
 }) {
+  const PLOT_H = height
   const [ref, width] = useWidth<HTMLDivElement>()
   const [hover, setHover] = useState<number | null>(null)
   const n = labels.length
@@ -87,6 +92,13 @@ export function LineChart({
               </text>
             ) : null
           )}
+          {area && series[0] && n > 1 ? (
+            <path
+              d={`M${x(0)},${y(0)}` + series[0].values.map((v, i) => `L${x(i).toFixed(1)},${y(v).toFixed(1)}`).join('') + `L${x(n - 1)},${y(0)}Z`}
+              fill={series[0].color}
+              opacity={0.1}
+            />
+          ) : null}
           {series.map((s) => (
             <path
               key={s.key}

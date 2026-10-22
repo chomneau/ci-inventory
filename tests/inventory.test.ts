@@ -94,6 +94,27 @@ describe('InventoryService', () => {
     expect(inv.listItems({ includeArchived: true }).length).toBe(1)
   })
 
+  it('reports stock value per category and per location', () => {
+    const cat = inv.createCategory(actor, { nameEn: 'Stationery' })
+    const { id } = newItem({ categoryId: cat.id, openingQuantity: 8 }) // 8 × $0.25 at the store
+    move({ type: 'transfer', itemId: id, fromLocationId: store, toLocationId: office, quantity: 3 })
+    expect(inv.listCategories()[0]).toMatchObject({ itemCount: 1, valueCents: 200 })
+    expect(inv.listLocations().map((l) => [l.name, l.itemCount, l.valueCents])).toEqual([
+      ['Main store', 1, 125],
+      ['Office 2F', 1, 75]
+    ])
+  })
+
+  it('counts every item held at a location (and per category)', () => {
+    const cat = inv.createCategory(actor, { nameEn: 'Stationery' })
+    newItem({ categoryId: cat.id, openingQuantity: 5 })
+    newItem({ sku: 'NOTE', nameEn: 'Notebook', categoryId: cat.id, openingQuantity: 2 })
+    newItem({ sku: 'CLIP', nameEn: 'Clips', openingQuantity: 9 })
+    expect(inv.listLocations().find((l) => l.id === store)?.itemCount).toBe(3)
+    expect(inv.listLocations().find((l) => l.id === office)?.itemCount).toBe(0)
+    expect(inv.listCategories()[0]?.itemCount).toBe(2)
+  })
+
   it('keeps categories that are in use', () => {
     const cat = inv.createCategory(actor, { nameEn: 'Stationery' })
     newItem({ categoryId: cat.id })
@@ -109,6 +130,25 @@ describe('InventoryService', () => {
     expect(inv.listItems({ search: '100%' }).map((i) => i.sku)).toEqual(['A4-PAPER'])
     expect(inv.listItems({ search: '%' }).map((i) => i.sku)).toEqual(['A4-PAPER'])
     expect(inv.listItems({ search: 'pen-' }).map((i) => i.sku)).toEqual(['PEN-BLUE'])
+  })
+
+  it('searches and pages the whole movement ledger', () => {
+    const pen = newItem().id
+    const paper = newItem({ sku: 'A4-PAPER', nameEn: 'A4 paper', defaultLocationId: office }).id
+    move({ type: 'in', itemId: pen, locationId: store, quantity: 50 })
+    for (let i = 0; i < 6; i++) move({ type: 'out', itemId: pen, locationId: store, quantity: 1, issuedTo: i % 2 ? 'Finance' : 'HR_team' })
+    move({ type: 'in', itemId: paper, locationId: office, quantity: 5, reason: 'Donated 100%' })
+    const skus = (q: Record<string, unknown>) => inv.listMovements(q).map((m) => m.sku)
+    expect(skus({ search: 'paper' })).toEqual(['A4-PAPER'])
+    expect(skus({ search: 'office 2f' })).toEqual(['A4-PAPER']) // location, case-insensitive
+    expect(inv.listMovements({ search: 'finance' })).toHaveLength(3) // recipient
+    expect(skus({ search: '100%' })).toEqual(['A4-PAPER']) // reason; % is literal
+    expect(inv.listMovements({ search: '_' })).toHaveLength(3) // _ is literal, not "any character"
+    expect(inv.listMovements({ search: 'keeper' })).toHaveLength(8) // author
+    // offset paging walks the full ledger without gaps or repeats
+    const all = inv.listMovements({ limit: 500 }).map((m) => m.id)
+    const paged = [0, 3, 6].flatMap((offset) => inv.listMovements({ limit: 3, offset }).map((m) => m.id))
+    expect(paged).toEqual(all)
   })
 
   it('computes the dashboard', () => {

@@ -9,7 +9,7 @@ import { Button } from '@renderer/components/ui/button'
 import { Dialog } from '@renderer/components/ui/dialog'
 import { Field } from '@renderer/components/ui/field'
 import { Input } from '@renderer/components/ui/input'
-import { EmptyState, PageHeader, Table, Td, Th } from '@renderer/components/ui/page'
+import { EmptyState, Page, PageHeader, Table, Td, Th } from '@renderer/components/ui/page'
 import { Textarea } from '@renderer/components/ui/textarea'
 import { useFormat } from '@renderer/lib/format'
 import { unwrap, useAction, useErrorText } from '@renderer/lib/ipc'
@@ -63,7 +63,7 @@ function LocationDialog({ location, onClose }: { location: Location | null; onCl
 
 export function LocationsPage() {
   const { t } = useTranslation()
-  const { number } = useFormat()
+  const { number, money } = useFormat()
   const errorText = useErrorText()
   const canWrite = useCanWrite()
   const { data: locations, isLoading } = useLocations(true)
@@ -75,8 +75,9 @@ export function LocationsPage() {
       .catch((e: unknown) => toast.error(errorText(e)))
 
   return (
-    <div className="mx-auto max-w-4xl space-y-5">
+    <Page>
       <PageHeader
+        icon={MapPin}
         title={t('nav.locations')}
         description={t('locations.subtitle')}
         actions={
@@ -97,8 +98,9 @@ export function LocationsPage() {
           <thead>
             <tr>
               <Th>{t('locations.name')}</Th>
-              <Th>{t('locations.description')}</Th>
+              <Th className="hidden @3xl:table-cell">{t('locations.description')}</Th>
               <Th className="text-right">{t('locations.itemsHeld')}</Th>
+              <Th className="text-right">{t('items.fields.value')}</Th>
               {canWrite ? <Th className="w-28" /> : null}
             </tr>
           </thead>
@@ -108,8 +110,9 @@ export function LocationsPage() {
                 <Td className="font-medium">
                   {l.name} {l.archived ? <Badge className="ml-2">{t('items.archived')}</Badge> : null}
                 </Td>
-                <Td className="text-muted-foreground">{l.description ?? '—'}</Td>
+                <Td className="hidden text-muted-foreground @3xl:table-cell">{l.description ?? '—'}</Td>
                 <Td className="text-right tabular-nums">{number(l.itemCount)}</Td>
+                <Td className="text-right tabular-nums">{money(l.valueCents)}</Td>
                 {canWrite ? (
                   <Td className="text-right">
                     <Button size="icon" variant="ghost" aria-label={t('common.edit')} onClick={() => setEditing(l)}>
@@ -131,6 +134,6 @@ export function LocationsPage() {
         </Table>
       )}
       {editing ? <LocationDialog location={editing === 'new' ? null : editing} onClose={() => setEditing(null)} /> : null}
-    </div>
+    </Page>
   )
 }

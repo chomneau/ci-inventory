@@ -8,7 +8,7 @@ import { Button } from '@renderer/components/ui/button'
 import { Dialog } from '@renderer/components/ui/dialog'
 import { Field } from '@renderer/components/ui/field'
 import { Input } from '@renderer/components/ui/input'
-import { EmptyState, PageHeader, Table, Td, Th } from '@renderer/components/ui/page'
+import { EmptyState, Page, PageHeader, Table, Td, Th } from '@renderer/components/ui/page'
 import { useFormat } from '@renderer/lib/format'
 import { unwrap, useAction } from '@renderer/lib/ipc'
 import { useCanWrite, useCategories } from './hooks'
@@ -62,15 +62,16 @@ function CategoryDialog({ category, onClose }: { category: Category | null; onCl
 
 export function CategoriesPage() {
   const { t } = useTranslation()
-  const { number } = useFormat()
+  const { number, money } = useFormat()
   const canWrite = useCanWrite()
   const { data: categories, isLoading } = useCategories()
   const [editing, setEditing] = useState<Category | null | 'new'>(null)
   const [deleting, setDeleting] = useState<Category | null>(null)
 
   return (
-    <div className="mx-auto max-w-4xl space-y-5">
+    <Page>
       <PageHeader
+        icon={Tags}
         title={t('nav.categories')}
         description={t('categories.subtitle')}
         actions={
@@ -93,6 +94,7 @@ export function CategoriesPage() {
               <Th>{t('items.fields.nameEn')}</Th>
               <Th>{t('items.fields.nameKm')}</Th>
               <Th className="text-right">{t('categories.items')}</Th>
+              <Th className="text-right">{t('items.fields.value')}</Th>
               {canWrite ? <Th className="w-24" /> : null}
             </tr>
           </thead>
@@ -102,6 +104,7 @@ export function CategoriesPage() {
                 <Td className="font-medium">{c.nameEn}</Td>
                 <Td className="font-khmer text-muted-foreground">{c.nameKm ?? '—'}</Td>
                 <Td className="text-right tabular-nums">{number(c.itemCount)}</Td>
+                <Td className="text-right tabular-nums">{money(c.valueCents)}</Td>
                 {canWrite ? (
                   <Td className="text-right">
                     <Button size="icon" variant="ghost" aria-label={t('common.edit')} onClick={() => setEditing(c)}>
@@ -126,6 +129,6 @@ export function CategoriesPage() {
         confirmLabel={t('common.delete')}
         onConfirm={() => unwrap(window.ci.categories.delete({ id: deleting!.id }))}
       />
-    </div>
+    </Page>
   )
 }

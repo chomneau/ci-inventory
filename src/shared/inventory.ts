@@ -94,6 +94,8 @@ export type StockMovementInput = z.input<typeof stockMovementInput>
 export const movementListQuery = z.object({
   itemId: optionalId,
   type: z.enum(['in', 'out', 'adjust', 'transfer_out', 'transfer_in']).optional(),
+  /** Case-insensitive substring match on SKU, item names, location, recipient, reason or author. */
+  search: z.string().trim().max(100).optional(),
   limit: z.number().int().min(1).max(500).default(100),
   offset: z.number().int().min(0).default(0)
 })
@@ -112,6 +114,8 @@ export interface Category {
   nameEn: string
   nameKm: string | null
   itemCount: number
+  /** Current value of stock on hand for active items in this category. */
+  valueCents: number
 }
 
 export interface Location {
@@ -120,6 +124,8 @@ export interface Location {
   description: string | null
   archived: boolean
   itemCount: number
+  /** Current value of stock held at this location. */
+  valueCents: number
 }
 
 export interface ItemSummary {
