@@ -27,7 +27,8 @@ export function ItemFormDialog({ open, onOpenChange, item }: { open: boolean; on
   const [nameEn, setNameEn] = useState(item?.nameEn ?? '')
   const [nameKm, setNameKm] = useState(item?.nameKm ?? '')
   const [categoryId, setCategoryId] = useState(item?.categoryId?.toString() ?? '')
-  const [locationId, setLocationId] = useState(item?.defaultLocationId?.toString() ?? '')
+  // A new item defaults to the only location when there is just one.
+  const [locationId, setLocationId] = useState(item?.defaultLocationId?.toString() ?? (!item && locations.length === 1 ? String(locations[0]!.id) : ''))
   const [unit, setUnit] = useState(item?.unit ?? 'pcs')
   const [minStock, setMinStock] = useState(String(item?.minStock ?? 0))
   const [unitCost, setUnitCost] = useState(item ? centsToInput(item.unitCostCents) : '')
@@ -35,7 +36,7 @@ export function ItemFormDialog({ open, onOpenChange, item }: { open: boolean; on
 
   const skuOk = SKU_PATTERN.test(sku.trim().toUpperCase())
   const minOk = /^\d+$/.test(minStock)
-  const openingOk = opening === '' || /^\d+$/.test(opening)
+  const openingOk = opening === '' || Number(opening) === 0 || (/^\d+$/.test(opening) && !!locationId)
   const cost = parseMoney(unitCost)
 
   const onSubmit = async (e: FormEvent) => {
@@ -130,8 +131,12 @@ export function ItemFormDialog({ open, onOpenChange, item }: { open: boolean; on
           </div>
         </Field>
         {!item ? (
-          <Field label={t('items.fields.opening')} htmlFor="opening" hint={t('items.openingHint')}>
-            <Input id="opening" inputMode="numeric" value={opening} onChange={(e) => setOpening(e.target.value.replace(/\D/g, ''))} placeholder="0" />
+          <Field
+            label={t('items.fields.opening')}
+            htmlFor="opening"
+            hint={locations.length === 0 ? t('items.openingNoLocations') : opening && Number(opening) > 0 && !locationId ? t('errors.LOCATION_REQUIRED') : t('items.openingHint')}
+          >
+            <Input id="opening" inputMode="numeric" disabled={locations.length === 0} value={opening} onChange={(e) => setOpening(e.target.value.replace(/\D/g, ''))} placeholder="0" />
           </Field>
         ) : null}
       </form>

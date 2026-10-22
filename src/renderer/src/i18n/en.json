@@ -258,7 +258,8 @@
       "out": "Out of stock"
     },
     "trendTitle": "Stock over time",
-    "trendSubtitle": "End-of-day stock on hand ({{unit}}), last 90 days"
+    "trendSubtitle": "End-of-day stock on hand ({{unit}}), last 90 days",
+    "openingNoLocations": "Add a location first to record opening stock — you can stock in later."
   },
   "stock": {
     "subtitle": "Every receipt, issue, transfer and count — append-only and audited.",
@@ -310,7 +311,14 @@
     "noMatches": "No movements match your search",
     "loadMore": "Load more",
     "count_one": "{{count}} movement",
-    "count_other": "{{count}} movements"
+    "count_other": "{{count}} movements",
+    "needLocation": "Add a location (for example, your storeroom) before recording stock.",
+    "needTwoLocations": "Transfers need at least two locations.",
+    "addLocation": "Add a location",
+    "onHandNow": "{{qty}} {{unit}} on hand",
+    "changeItem": "Change",
+    "noItemMatches": "No item matches this search.",
+    "noItemsYet": "No items yet — create one on the Items page first."
   },
   "categories": {
     "subtitle": "Group items, e.g. stationery, cleaning, IT accessories.",

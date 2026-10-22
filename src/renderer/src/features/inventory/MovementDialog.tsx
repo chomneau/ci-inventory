@@ -1,5 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
+import { MapPin } from 'lucide-react'
 import { toast } from 'sonner'
 import type { StockMovementInput } from '@shared/inventory'
 import { Alert } from '@renderer/components/ui/alert'
@@ -31,7 +33,10 @@ export function MovementDialog({
 }) {
   const { t } = useTranslation()
   const { number, name } = useFormat()
-  const { data: locations = [] } = useLocations()
+  const navigate = useNavigate()
+  const { data: locations = [], isSuccess: locationsLoaded } = useLocations()
+  // Stock always lives somewhere: without a location (two for a transfer) nothing can be recorded yet.
+  const missingLocations = locationsLoaded && locations.length < (kind === 'transfer' ? 2 : 1)
   const [itemId, setItemId] = useState<number | null>(fixedItemId ?? null)
   const { data: item } = useItem(itemId ?? 0)
   const activeItem = itemId ? item : undefined
@@ -51,6 +56,10 @@ export function MovementDialog({
     const preferred = kind === 'in' ? (activeItem.defaultLocationId ?? stocked) : (stocked ?? activeItem.defaultLocationId)
     if (preferred) setLocationId(String(preferred))
   }, [activeItem, kind, locationId])
+  // With a single location there is nothing to choose.
+  useEffect(() => {
+    if (!locationId && locations.length === 1) setLocationId(String(locations[0]!.id))
+  }, [locations, locationId])
 
   const available = activeItem?.stockByLocation.find((s) => s.locationId === Number(locationId))?.quantity ?? 0
   const qtyNum = Number(qty)
@@ -110,6 +119,23 @@ export function MovementDialog({
     >
       <form id="movement-form" onSubmit={onSubmit} className="space-y-4">
         {error ? <Alert>{error}</Alert> : null}
+        {missingLocations ? (
+          <div className="flex flex-wrap items-center gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2.5 text-sm" role="status">
+            <MapPin className="size-4 shrink-0 text-amber-600 dark:text-amber-300" />
+            <span className="min-w-0 flex-1">{kind === 'transfer' ? t('stock.needTwoLocations') : t('stock.needLocation')}</span>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                onOpenChange(false)
+                navigate('/locations')
+              }}
+            >
+              {t('stock.addLocation')}
+            </Button>
+          </div>
+        ) : null}
         {fixedItemId ? null : (
           <Field label={t('stock.fields.item')} htmlFor="mv-item">
             <ItemPicker id="mv-item" value={itemId} onChange={setItemId} />
