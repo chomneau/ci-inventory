@@ -1,7 +1,7 @@
 {
   "name": "ci-inventory",
   "productName": "CI Inventory",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "CI Cambodia inventory and office supplies manager",
   "author": {
     "name": "Conservation International Cambodia"
